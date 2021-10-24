@@ -1,3 +1,7 @@
+#calender{
+    height: 100%;
+    overflow: scroll;
+}
 .c-l{
   border: 0.5px solid white;
 }
@@ -40,8 +44,18 @@
     background-color: rgb(160, 160, 160);
 }
 
+.c-s-wait .ant-checkbox-disabled{
+    background-color: rgb(216, 157, 255) !important;
+}
+
+.c-s-yes .ant-checkbox-disabled{
+    background-color: rgb(142, 179, 108) !important;
+}
+
+.c-s-end .ant-checkbox-disabled{
+    background-color: rgb(160, 160, 160) !important;
+}
 .c-s .ant-checkbox-wrapper .ant-checkbox-disabled .ant-checkbox-input{
-    cursor: pointer;
 }
 
 .c-s .c-s-click{
@@ -51,4 +65,8 @@
     position: absolute;
     top:0;
     cursor: pointer;
+}
+
+.c-s .c-s-wait{
+
 }

@@ -1,0 +1,10 @@
+#signin #email, #signin #password{
+    margin: 0 5px;
+}
+
+
+#signin{
+    vertical-align: middle;
+    align-items: center;
+    align-content: center;
+}

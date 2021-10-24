@@ -12,9 +12,12 @@
     "@types/react-dom": "^17.0.9",
     "antd": "^4.16.13",
     "date-fns": "^2.25.0",
+    "deep-equal": "^1.1.1",
     "firebase": "^9.1.0",
+    "leaflet": "^1.7.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-leaflet": "^3.2.2",
     "react-scripts": "4.0.3",
     "typescript": "^4.4.4",
     "web-vitals": "^1.1.2"
@@ -31,16 +34,13 @@
       "react-app/jest"
     ]
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "@types/deep-equal": "^1.0.1",
+    "@types/leaflet": "^1.7.5"
   }
 }

@@ -1,0 +1,44 @@
+#chat{
+    margin:10px 0;
+    border: 0.1px solid rgb(223, 223, 223);
+    background-color: white;
+    min-height: 450px;
+
+}
+
+#chat #chat-button{
+    width: 100%;
+    font-weight: 600;
+}
+
+#chat #chat-list{
+    padding: 10px 20px;
+}
+
+#chat #chat-list .chat-list-child{
+    border-bottom: none !important;
+}
+
+#chat #chat-list .chat-list-child .ant-typography{
+    border: 0.5px solid rgb(190, 190, 190);
+    border-radius: 5px;
+    padding: 1px 10px;
+    background-color: rgb(210, 210, 210);
+    margin: 0 auto 0 0;
+}
+
+#chat #chat-list .chat-list-child-user{
+}
+
+#chat #chat-list .chat-list-child-user .ant-typography{
+    margin: 0 0 0 auto;
+}
+
+#chat #chat-list .chat-list-child-admin .ant-typography{
+    margin: 0 auto 0 auto;
+}
+
+
+#chat #chat-list .chat-list-child-admin .ant-typography::before,#chat #chat-list .chat-list-child-admin .ant-typography::after{
+    content: "-";
+}

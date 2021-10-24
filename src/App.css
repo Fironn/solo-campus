@@ -39,7 +39,69 @@
   }
 }
 
-.site-layout-background {
+#body{
   background: #fff;
-  padding: 24px 20px;
+  /* height: 90vh;
+  overflow: scroll; */
+}
+
+#content{
+  max-width: 1000px;
+  margin:0 auto;
+  padding: 24px;
+  height: 100%;
+}
+
+#header{
+  /* height: 10vh; */
+}
+
+#main{
+  /* height: 10vh; */
+}
+
+#footer{
+  text-align: right;
+}
+
+#user-bar{
+  vertical-align: middle;
+  background-color:transparent;
+  height: 100%;
+  margin:0 0 0 auto;
+}
+
+button{
+  font-size: smaller !important;
+  font-weight: 500 !important;
+}
+#user-bar #name{
+  margin:0 10px;
+}
+
+#user-bar .icon{
+  border: none;
+  height: 100%;
+  padding: 0;
+}
+
+#user-bar .ant-space{
+  margin:0 0 0 auto
+}
+
+#user-bar .ant-typography{
+  color: white;
+}
+
+#user{
+  height: 100%;
+}
+
+#group{
+
+}
+
+#user .ant-skeleton {
+  display: flex;
+  align-items: center;
 }

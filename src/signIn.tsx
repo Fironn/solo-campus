@@ -4,8 +4,9 @@ import type { UserCalender } from "./components/type"
 import { useState, useEffect } from 'react'
 import './calender.css';
 import { auth, signInAccount, signOutAccount, currentUser, signUpAccount } from "./components/firebase"
-import './App.css';
-import { Layout, Button, Input, Row, Col } from 'antd';
+import './signIn.css';
+import { Layout, Button, Input, Row, Col, Space } from 'antd';
+import { InfoCircleOutlined, UserOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -13,31 +14,34 @@ const User = (state: any) => {
     const [ email, setEmail ] = useState("");
     const [ password, setPassword ] = useState("");
 
-    const onSubmit = async () => {
+    const onSubmit = async (e: string, p: string) => {
         state.onSubmit(false)
+        const res = await signInAccount(e, p)
+        if (res == undefined) {
+            state.onSubmit(true)
+        }
     };
 
-    return <>
-        <h1>Welcome to Chat Room</h1>
+    return <Space id="signin">
         <Input
             placeholder="email"
-            id="email"
             type="email"
             value={email}
             onInput={(e) => setEmail(e.currentTarget.value)}
             disabled={!state.form}
+            prefix={<UserOutlined className="site-form-item-icon" />}
         />
-        <Input
+        <Input.Password
             placeholder="password"
-            id="password"
             type="password"
             value={password}
             onInput={(e) => setPassword(e.currentTarget.value)}
             disabled={!state.form}
+            iconRender={visible => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
         />
-        <Button type="primary" onClick={() => { onSubmit(); signInAccount(email, password) }} disabled={!state.form}>Sign In</Button>
-        <Button onClick={() => { onSubmit(); signUpAccount(email, password); }} disabled={!state.form}>Sign Up</Button>
-    </>
+        <Button type="primary" onClick={async () => { onSubmit(email, password) }} disabled={!state.form}>ログイン</Button>
+        <Button style={{ color: 'white' }} type="text" onClick={() => { state.showDrawer(3) }} disabled={!state.form}>新規登録する</Button>
+    </Space>
 }
 
 export default User

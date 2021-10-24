@@ -1,0 +1,64 @@
+#register-drawer .icon{
+    height: 70px;
+    width: 70px;
+    position: relative;
+    margin: 10px auto 20px;
+    background-color: transparent;
+}
+#register-drawer .icon>div{
+    text-align: center;
+    vertical-align: middle;
+}
+
+#register-drawer .icon div{
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font-weight: 600;
+    text-align: center;
+    color: rgb(51, 51, 51);
+    font-size: 12px;
+}
+#register-drawer .icon .icon-button{
+    height: 100%;
+}
+
+#register-drawer .icon button{
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: 100%;
+}
+
+#register-drawer{
+    justify-content: center;
+    width: 100%;
+}
+
+#register-drawer .ant-space-item{
+    width: 100%;
+}
+
+#register-drawer .sub-detail{
+    padding-left: 10px;
+}
+
+#register-drawer .sub-title{
+    font-weight: 600;
+}
+
+#register-drawer .edit{
+    width: 100%;
+    text-align: center;
+}
+
+#register-drawer .form .sub-detail{
+    margin-bottom: 10px;
+    width: 100%;
+    text-align: left;
+}
+
+#register-drawer .form .sub-detail input{
+    width: 100%;
+}

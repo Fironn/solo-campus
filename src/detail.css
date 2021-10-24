@@ -1,0 +1,76 @@
+#detail  .ant-btn{
+    height: 100%;
+}
+
+#detail .ant-row{
+    margin: 5px 0;
+}
+
+#detail #room{
+    margin: 0 0 20px 0;
+}
+
+#detail .ant-col{
+    text-align: center;
+}
+
+#detail{
+    margin: 20px 0;
+}
+
+#detail .sub-title{
+    font-weight: 600;
+}
+
+#detail .sub-detail{
+    margin-left: 20px;
+}
+
+#detail .status{
+    text-align: center;
+}
+
+#detail .status-no:before{
+    content: "探索中";
+    color: rgb(236, 173, 0);
+    font-weight: 600;
+}
+
+#detail .status-wait:before{
+    content: "返答待ち";
+    color: rgb(216, 157, 255);
+    font-weight: 600;
+}
+
+#detail .status-yes:before{
+    content: "確定";
+    color: green;
+    font-weight: 600;
+}
+
+#detail .status-end:before{
+    content: "終了";
+    color: gray;
+    font-weight: 600;
+}
+
+#detail .status .status-no:before{
+    content: "却下";
+    color: red;
+}
+
+
+#detail .status .status-wait:before{
+    content: "返答待ち";
+}
+
+#detail .status .status-yes:before{
+    content: "承認済み";
+}
+
+#detail .user-status{
+    justify-content: center;
+    margin: 20px 0;
+    background-color: rgb(238, 238, 238);
+    padding: 15px 0;
+}
