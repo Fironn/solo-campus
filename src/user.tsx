@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
 import './calender.css';
 import { auth, signInAccount, getImg, signOutAccount, currentUser, signUpAccount } from "./components/firebase"
+import { openNotification, closeNotification } from "./notification";
 import './App.css';
 import { Layout, Button, Skeleton, Input, Row, Col, Avatar, Typography, Space } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
@@ -25,7 +25,7 @@ const User = (state: any) => {
             <Skeleton.Avatar active size="large" />
         }
         <Text id="name">{state.user.email}</Text>
-        <Button type="primary" onClick={() => { onSubmit(); signOutAccount() }} disabled={!state.form} >ログアウト</Button>
+        <Button type="primary" onClick={() => { onSubmit(); closeNotification(); signOutAccount() }} disabled={!state.form} >ログアウト</Button>
     </Space>
 }
 

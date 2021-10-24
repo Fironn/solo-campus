@@ -24,6 +24,7 @@ const Calender = (state: any) => {
     }
 
     const onEdit = (s: boolean) => {
+        state.onSubmit(!s);
         if (s === false) {
             const temp = getCheckedList()
             setCheckedList(temp);
@@ -64,8 +65,8 @@ const Calender = (state: any) => {
         return undefined
     }
 
-    const dates = getDates(process.env.REACT_APP_CALENDER_DATE_FROM ? new Date(process.env.REACT_APP_CALENDER_DATE_FROM.toString()) : today, 0)
-    const datesStr = getDates(process.env.REACT_APP_CALENDER_DATE_FROM ? new Date(process.env.REACT_APP_CALENDER_DATE_FROM.toString()) : today, 2)
+    const dates = getDates(today ? today : process.env.REACT_APP_CALENDER_DATE_FROM ? new Date(process.env.REACT_APP_CALENDER_DATE_FROM.toString()) : new Date("2021/10/1"), 0)
+    const datesStr = getDates(today ? today : process.env.REACT_APP_CALENDER_DATE_FROM ? new Date(process.env.REACT_APP_CALENDER_DATE_FROM.toString()) : new Date("2021/10/1"), 2)
 
     const getCheckedList = () => {
         var temp: string[] = []
@@ -108,10 +109,10 @@ const Calender = (state: any) => {
                 {edit ?
                     <span>
                         <Space>
-                            <Button type="primary" disabled={!state.form} onClick={onSubmit} >
+                            <Button type="primary" disabled={!(state.form || edit)} onClick={onSubmit} >
                                 保存
                             </Button>
-                            <Button disabled={!state.form} onClick={() => onEdit(false)} >
+                            <Button disabled={!(state.form || edit)} onClick={() => onEdit(false)} >
                                 キャンセル
                             </Button>
                         </Space>

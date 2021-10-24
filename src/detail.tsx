@@ -69,8 +69,8 @@ const Detail = (state: any) => {
                         <>
                             <Row justify="center" className="icon">
                                 <Button type="text" onClick={() => state.showDrawer(2)} disabled={!state.form}>
-                                    {state.user && state.photoURL !== "" ?
-                                        <Avatar size={64} src={state.photoURL} alt={state.pair.displayName} /> :
+                                    {state.pair && state.photoURLPair && state.photoURLPair !== "" ?
+                                        <Avatar size={64} src={state.photoURLPair} alt={state.pair.displayName} /> :
                                         <Avatar size={64} icon={<UserOutlined />} alt="" />
                                     }
                                 </Button>

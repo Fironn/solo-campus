@@ -17,11 +17,6 @@ const AddMarkerToClick = (state: any) => {
     return (
         <>
             <Marker position={state.marker}>
-                <Popup>
-                    <span>
-                        A pretty CSS3 popup. <br /> Easily customizable.
-                    </span>
-                </Popup>
             </Marker>
         </>
     )
@@ -34,7 +29,12 @@ const Map = (state: any) => {
                 attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <AddMarkerToClick marker={state.marker ? state.marker : init} onClick={state.onClick} />
+            {state.onClick ?
+                <AddMarkerToClick marker={state.marker ? state.marker : init} onClick={state.onClick} />
+                :
+                <Marker position={state.marker}>
+                </Marker>
+            }
         </MapContainer>
     </>)
 }

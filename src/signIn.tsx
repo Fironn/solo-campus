@@ -17,9 +17,10 @@ const User = (state: any) => {
     const onSubmit = async (e: string, p: string) => {
         state.onSubmit(false)
         const res = await signInAccount(e, p)
-        if (res == undefined) {
+        if (res === undefined) {
             state.onSubmit(true)
         }
+        state.onSubmit(true)
     };
 
     return <Space id="signin">

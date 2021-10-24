@@ -1,6 +1,5 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import deepEqual from "deep-equal";
 
 admin.initializeApp();
 
@@ -28,60 +27,60 @@ const addRoom = async (date: string, time: string, uid_1: string, uid_2: string,
 }
 
 const changeRoomState = async (without_2: boolean, state: number, date: string, time: string, uid_1: string, uid_2: string) => {
+    const data = {
+        state: state,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    }
     await db.collection('users').doc(uid_1).collection("calender").doc(date + time)
-        .set({
-            state: state,
-        }, { merge: true });
+        .set(data, { merge: true });
 
     await db.collection('users').doc(uid_2).collection("calender").doc(date + time)
-        .set({
-            state: state,
-        }, { merge: true });
+        .set(data, { merge: true });
 
 
     await db.collection('calender').doc(date).collection(time).doc(uid_1)
-        .set({
-            state: state,
-        }, { merge: true });
+        .set(data, { merge: true });
 
     if (without_2) {
         await db.collection('calender').doc(date).collection(time).doc(uid_2)
-            .set({
-                state: state,
-            }, { merge: true });
+            .set(data, { merge: true });
     }
     functions.logger.log('state updated!', date, time);
 }
 
 const changeRoomStateId = async (without_2: boolean, room: string, state: number, date: string, time: string, uid_1: string, uid_2: string) => {
+    const data = {
+        room: room,
+        state: state,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    }
     await db.collection('users').doc(uid_1).collection("calender").doc(date + time)
-        .set({
-            room: room,
-            state: state,
-        }, { merge: true });
+        .set(data, { merge: true });
 
     await db.collection('users').doc(uid_2).collection("calender").doc(date + time)
-        .set({
-            room: room,
-            state: state,
-        }, { merge: true });
+        .set(data, { merge: true });
 
 
     await db.collection('calender').doc(date).collection(time).doc(uid_1)
-        .set({
-            room: room,
-            state: state,
-        }, { merge: true });
+        .set(data, { merge: true });
 
 
     if (without_2) {
         await db.collection('calender').doc(date).collection(time).doc(uid_2)
-            .set({
-                room: room,
-                state: state,
-            }, { merge: true });
+            .set(data, { merge: true });
     }
     functions.logger.log('room state updated!', date, time, room);
+}
+
+const sendMessage = async (uid: string, messages: string[]) => {
+    const res = await db.collection('users').doc(uid).collection("messages").add({
+        title: messages[ 0 ],
+        message: messages.slice(1).join("　"),
+        read: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log('send the message: ', res.id);
 }
 
 exports.updateCalender = functions.firestore
@@ -93,7 +92,7 @@ exports.updateCalender = functions.firestore
 
             functions.logger.log('data:', data, 'previousData:', previousData);
 
-            if (!data || (previousData && (data.state === previousData.state)) || data.state !== 1 || (data.room && data.room !== "")) {
+            if (!data || data === {} || data === previousData || (previousData && (data.state === previousData.state)) || data.state !== 1 || (data.room && data.room !== "")) {
                 return null;
             }
 
@@ -104,41 +103,47 @@ exports.updateCalender = functions.firestore
                 functions.logger.log('No matching pair.');
                 return null;
             }
+
             var pairUid: string = "";
-            var locate: latLng = locateDefault;
             const ran: number = getRandomInt(snapshot.size - 1)
             var count: number = 0;
 
             snapshot.forEach(doc => {
                 if (doc.id !== context.params.uid) {
                     if (count === ran && doc.id !== context.params.uid) {
-                        const pairData = doc.data()
-                        functions.logger.log('pairData', pairData);
-                        if (!pairData || pairData.room === "") {
+                        const datas = doc.data()
+                        if (!datas || datas.room === "") {
                             pairUid = doc.id
-                            locate = pairData.locate
                         }
                     }
                     count += 1;
                 }
             });
 
-            if (pairUid === "" || locate === locateDefault) {
+            if (pairUid === "") {
                 functions.logger.log('No matching pair uid.');
                 return null;
             }
 
-            const ref = db.collection('users').doc(context.params.uid);
-            const docs = await ref.get();
+            const pairRef = db.collection('users').doc(pairUid);
+            const pairDocs = await pairRef.get();
 
-            if (!docs.exists) {
-                functions.logger.log('No user document!');
+            const userRef = db.collection('users').doc(context.params.uid);
+            const userDocs = await userRef.get();
+
+            var locate: latLng = locateDefault;
+
+            if (!pairDocs.exists || !userDocs.exists) {
+                functions.logger.log('No matching pair locate.');
+                return null;
             } else {
-                const userData = docs.data()
-                if (userData && userData.locate) {
-                    functions.logger.log('userData', userData);
-                    if (getRandomInt(2) == 1) {
+                const pairData = pairDocs.data()
+                const userData = userDocs.data()
+                if (userData && userData.locate && pairData && pairData.locate) {
+                    if (getRandomInt(2) === 1) {
                         locate = userData.locate
+                    } else {
+                        locate = pairData.locate
                     }
                 }
             }
@@ -146,9 +151,16 @@ exports.updateCalender = functions.firestore
             const roomId = await addRoom(context.params.date, context.params.time, context.params.uid, pairUid, locate)
             await changeRoomStateId(true, roomId, 2, context.params.date, context.params.time, pairUid, context.params.uid)
 
+            const send = [ "相手が見つかりました", "予定日時",
+                context.params.date.substring(0, 4) + "/" + context.params.date.substring(4, 6) + "/" + context.params.date.substring(6, 8)
+                , context.params.time.substring(0, 2) + ":" + context.params.time.substring(2, 4) ]
+            sendMessage(context.params.uid, send)
+            sendMessage(pairUid, send)
+
             return change.after.ref.set({
                 room: roomId,
                 state: 2,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
             }, { merge: true });
 
         } catch (e) {
@@ -166,20 +178,36 @@ exports.updateState = functions.firestore
 
             functions.logger.log('data:', data, 'previousData:', previousData);
 
-            if (!data || data == {} || (data.members && data.members.length !== 2) || (data.state && data.state !== 2) || (previousData && (deepEqual(data.members, previousData.members)))) {
+            if (!data || data === {} || data === previousData || (data.members && data.members.length !== 2) || (data.state && data.state !== 2) || (previousData && data.members === previousData.members)) {
                 return null;
             }
 
             if (data.members[ 0 ].state === 1 && data.members[ 1 ].state === 1) {
-                functions.logger.log('matched:', context.params.id);
-
                 await changeRoomState(false, 3, data.date, data.time, data.members[ 0 ].uid, data.members[ 1 ].uid)
+                functions.logger.log('matched:', context.params.id);
+                const send = [ "確定しました！", "予定日時",
+                    data.date.substring(0, 4) + "/" + data.date.substring(4, 6) + "/" + data.date.substring(6, 8)
+                    , data.time.substring(0, 2) + ":" + data.time.substring(2, 4) ]
+
+                sendMessage(data.members[ 0 ].uid, send)
+                sendMessage(data.members[ 1 ].uid, send)
 
                 return change.after.ref.set({
                     state: 3,
+                    timestamp: admin.firestore.FieldValue.serverTimestamp(),
                 }, { merge: true });
+
             } else if (data.members[ 0 ].state === -1 || data.members[ 1 ].state === -1) {
                 await changeRoomStateId(false, "", 1, data.date, data.time, data.members[ 0 ].uid, data.members[ 1 ].uid)
+                functions.logger.log('deleted:', context.params.id);
+
+                sendMessage(data.members[ 0 ].uid, [ data.members[ 0 ].state === -1 ? "拒否しました" : "拒否されました", "予定日時",
+                data.date.substring(0, 4) + "/" + data.date.substring(4, 6) + "/" + data.date.substring(6, 8),
+                data.time.substring(0, 2) + ":" + data.time.substring(2, 4) ])
+                sendMessage(data.members[ 1 ].uid, [ data.members[ 1 ].state === -1 ? "拒否しました" : "拒否されました", "予定日時",
+                data.date.substring(0, 4) + "/" + data.date.substring(4, 6) + "/" + data.date.substring(6, 8),
+                data.time.substring(0, 2) + ":" + data.time.substring(2, 4) ])
+
                 return change.after.ref.delete();
             }
 

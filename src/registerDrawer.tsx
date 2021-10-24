@@ -1,8 +1,7 @@
-import type { latLng, User } from "./components/type";
+import type { latLng, User, AccountDetail } from "./components/type";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import Map from './map'
 import type { ChangeEvent } from "react";
-import type { AccountDetail } from "./components/type";
 import { useState, useEffect, useRef, } from 'react'
 import { signUpAccount } from "./components/firebase"
 import './registerDrawer.css';

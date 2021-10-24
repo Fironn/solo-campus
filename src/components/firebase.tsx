@@ -1,14 +1,16 @@
 import type { Messages, UserCalender, Pair, RoomMember, User, AccountDetail, latLng } from "./type"
 import { getApps, initializeApp } from "firebase/app"
 import {
-    getAuth, sendEmailVerification, signOut, updateProfile, browserSessionPersistence,
-    createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged
+    getAuth, sendEmailVerification, signOut, browserSessionPersistence,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
 } from "firebase/auth";
-import { Timestamp, writeBatch, onSnapshot, setDoc, getFirestore, arrayUnion, arrayRemove, updateDoc, collection, query, orderBy, startAt, endAt, where, limit, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
+import { Timestamp, writeBatch, setDoc, getFirestore, arrayUnion, arrayRemove, updateDoc, collection, query, orderBy, startAt, endAt, limit, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL, uploadBytesResumable } from "firebase/storage"
-import { async } from "@firebase/util";
-import { zeroPadding, getDateRangeString, getDateTimeString } from "./time"
+import { getDateTimeString } from "./time"
 import { openNotification } from "../notification";
+import { getAnalytics } from "firebase/analytics";
+import loadImage from 'blueimp-load-image';
+import { async } from "@firebase/util";
 
 const firebaseConfig = {
     apiKey: process.env.REACT_APP_FIREBASE_KEY,
@@ -18,15 +20,25 @@ const firebaseConfig = {
     storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.REACT_APP_FIREBASE_SENDER_ID,
     appId: process.env.REACT_APP_FIREBASE_APPID,
+    measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 const app = typeof window !== "undefined" && !getApps().length ? initializeApp(firebaseConfig) : getApps()[ 0 ];
+const analytics = getAnalytics(app);
 
 export const auth = app ? getAuth(app) : getAuth(initializeApp(firebaseConfig));
 export const db = getFirestore();
 const storage = getStorage();
 
 auth.setPersistence(browserSessionPersistence);
+
+
+export const readMessage = async (ref: any, id: string) => {
+    await updateDoc(doc(ref, id), {
+        read: true
+    });
+    console.log("read message", id)
+}
 
 export const getImg = async () => {
     const user = await getUserDetail(undefined);
@@ -213,22 +225,32 @@ export const setImg = async (file: Blob, next: any, error: any, complete: any) =
         const photoURL = "0.jpg"
         const path = "gs://" + process.env.REACT_APP_FIREBASE_STORAGE_BUCKET + "/users/" + user.uid + "/" + photoURL
         const imageRef = ref(storage, path);
-        const uploadTaskSnap = await uploadBytesResumable(imageRef, file)
-        const uploadTask = uploadTaskSnap.task
 
-        uploadTask.on(
-            "state_changed",
-            next,
-            error,
-            complete
-        );
-        const docRef = doc(collection(db, "users"), user.uid);
-        const result = await updateDoc(docRef, {
-            photoURL: photoURL,
-            timestamp: timestamp()
-        });
+        const canvas = await loadImage(file, { maxWidth: 100, canvas: true })
+        console.log(file)
 
-        console.log("upload!", photoURL);
+        if (canvas.image instanceof HTMLCanvasElement) {
+            canvas.image.toBlob(async (blob: Blob | null) => {
+                if (blob) {
+                    console.log(blob)
+                    const uploadTaskSnap = await uploadBytesResumable(imageRef, blob)
+                    const uploadTask = uploadTaskSnap.task
+
+                    uploadTask.on(
+                        "state_changed",
+                        next,
+                        error,
+                        complete
+                    );
+                    const docRef = doc(collection(db, "users"), user.uid);
+                    const result = await updateDoc(docRef, {
+                        photoURL: photoURL,
+                        timestamp: timestamp()
+                    });
+                    console.log("upload!", photoURL);
+                }
+            });
+        }
     } else {
     }
 }
@@ -237,7 +259,7 @@ export const sendVerification = async () => {
     const user = currentUser();
     if (user) {
         const sendEmail = await sendEmailVerification(user);
-        openNotification([ "承認メールを送信しました。", "" ])
+        openNotification([ "承認メールを送信しました。", "" ], () => { })
         return true
     } else {
         return false
@@ -257,7 +279,7 @@ export const signUpAccount = async (data: AccountDetail, email: string, password
             timestamp: timestamp()
         });
     } catch (e: any) {
-        openNotification([ e.code, e.message ])
+        openNotification([ e.code, e.message ], () => { })
         console.error(e.code, e.message)
         return false
     }
@@ -270,7 +292,7 @@ export const signInAccount = async (email: string, password: string) => {
         const user = result.user;
         return user
     } catch (e: any) {
-        openNotification([ e.code, e.message ])
+        openNotification([ e.code, e.message ], () => { })
         console.error(e.code, e.message)
         return undefined
     }

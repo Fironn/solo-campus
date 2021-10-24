@@ -1,11 +1,11 @@
 import type { FormEvent } from "react";
 import type { Messages } from "./components/type"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { auth, currentUser, sendMessage, getMessage, db } from "./components/firebase"
 import { compare } from './components/type'
 import { onSnapshot, collection, query, orderBy, where, limit, doc } from "firebase/firestore";
-import { Layout, Button, Input, List, Typography, Divider, Avatar, Row, Col } from 'antd';
+import { Layout, Button, Form, Input, List, Typography, Divider, Avatar, Row, Col } from 'antd';
 import './chat.css'
 const { Text, Link } = Typography;
 
@@ -13,8 +13,10 @@ const { Text, Link } = Typography;
 const Chat = (state: any) => {
     const [ message, setMessage ] = useState("");
     const [ messages, setMessages ] = useState<Messages[]>([]);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        var unsubscribe: Function;
         async function getState() {
             if (state.room !== undefined && state.room !== "") {
                 setMessages(await getMessage(state.room));
@@ -23,7 +25,7 @@ const Chat = (state: any) => {
                 const colRef = collection(doc(collection(db, "rooms"), state.room), "messages");
                 const q = query(colRef, orderBy("timestamp", "desc"), limit(10));
 
-                const unsubscribe = onSnapshot(q, snapshots => {
+                unsubscribe = onSnapshot(q, snapshots => {
                     var res: Messages[] = []
                     snapshots.forEach((d: any) => {
                         const data = d.data()
@@ -32,21 +34,28 @@ const Chat = (state: any) => {
                     console.log("updated!", res.length)
                     setMessages(res)
                     state.onSubmit(true)
-                }, error => {
-                    console.log(error);
+                }, (e) => {
+                    console.log(e);
                 });
                 return () => unsubscribe();
             }
         }
         getState();
         return () => {
+            unsubscribe()
         };
     }, [ state.room ]);
 
-    const onSubmit = async (event: FormEvent) => {
-        if (state.room) sendMessage(state.room, message)
-        state.onSubmit(false)
+    const onSend = async () => {
+        if (state.room && message.length > 0) await sendMessage(state.room, message)
+        setMessage("")
+        state.onSubmit(true)
     };
+
+    const onSubmit = () => {
+        state.onSubmit(false)
+        if (inputRef && inputRef.current) inputRef.current.click();
+    }
 
     const chatList = () => {
         var temp = []
@@ -66,7 +75,7 @@ const Chat = (state: any) => {
                 <List id="chat-list">
                     {chatList()}
                 </List>
-                <Row>
+                <Row id="chat-send">
                     <Col flex="auto">
                         <Input
                             type="text"
@@ -76,10 +85,16 @@ const Chat = (state: any) => {
                             minLength={1}
                             disabled={!state.form}
                             id="chat-input"
+                            onKeyPress={e => {
+                                if (e.key == 'Enter') {
+                                    e.preventDefault()
+                                    onSubmit()
+                                }
+                            }}
                         />
                     </Col>
                     <Col flex="40px">
-                        <Button type="primary" disabled={!state.form} onClick={onSubmit} id="chat-button">
+                        <Button type="primary" ref={inputRef} disabled={!state.form} onClick={onSend} id="chat-button">
                             送信
                         </Button>
                     </Col>

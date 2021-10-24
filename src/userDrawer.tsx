@@ -1,9 +1,10 @@
 import type { ChangeEvent } from "react";
-import type { AccountDetail } from "./components/type";
+import type { latLng, User, AccountDetail } from "./components/type";
 import { useState, useEffect, useRef, } from 'react'
 import { setUserDetail, getImg, setImg } from "./components/firebase"
 import './userDrawer.css';
 import './App.css';
+import Map from './map'
 import {
     Layout, Button, Skeleton, Typography, Input, Row, Col, Avatar, Upload, message, Drawer, Form, Space
 } from 'antd';
@@ -70,20 +71,35 @@ const UserDrawer = (state: any) => {
 
     const onSubmit = async () => {
         state.onSubmit(true)
-        var send: any = {};
-        if (newDetail.displayName !== state.user.displayName) send.displayName = newDetail.displayName
-        if (!deepEqual(newDetail.locate, state.user.locate)) send.locate = newDetail.locate
-        if (!deepEqual(newDetail.tag, state.user.tag)) send.tag = newDetail.tag
+        const send = checkEqualDetail(newDetail, state.user)
         const res = await setUserDetail(send);
         if (res) state.changeUserProfile(send);
         setOnEdit(false);
         state.onSubmit(true);
     }
 
+    const checkEqualDetail = (newData: AccountDetail, oldData: any) => {
+        var diff: any = {};
+        if (newData.displayName !== oldData.displayName) diff.displayName = newData.displayName
+        if (!deepEqual(newData.locate, oldData.locate)) diff.locate = newData.locate
+        if (!deepEqual(newData.tag, oldData.tag)) diff.tag = newData.tag
+        return diff
+    }
+
     const onEdits = (s: boolean) => {
-        if (s === false) {
+        const data = checkEqualDetail(newDetail, state.user)
+        if (s === false && Object.keys(data).length !== 0) {
+            setNewDetail({
+                displayName: state.user.displayName,
+                locate: { lat: state.user.locate.lat, lng: state.user.locate.lng },
+                tag: state.user.tag
+            })
         }
         setOnEdit(s);
+    }
+
+    const onClick = (locate: latLng) => {
+        setNewDetail({ ...newDetail, locate: { lat: locate.lat.toString(), lng: locate.lng.toString() } });
     }
 
     const editButton = !onEdit ? <Button type="primary" disabled={!state.form} onClick={() => onEdits(true)}>
@@ -109,18 +125,15 @@ const UserDrawer = (state: any) => {
             <Text className="sub-title">タグ</Text>
             <span><TagsOutlined /><Text className="sub-detail">{state.user.tag && state.user.tag.length > 0 ? state.user.tag[ 0 ] : "なし"}</Text></span>
             <Text className="sub-title">待ち合わせポイント</Text>
-            <span><Row>
-                <Col span={1}><EnvironmentOutlined /></Col>
-                <Col span={23}><Form.Item className="sub-detail">
-                    <Input placeholder={state.user.locate.lat} value={newDetail.locate.lat} disabled={!state.form}
-                        onInput={(e) => e.currentTarget.value ? setNewDetail({ ...newDetail, locate: { ...newDetail.locate, lat: e.currentTarget.value } }) : undefined}
-                    />
-                    <Input placeholder={state.user.locate.lng} value={newDetail.locate.lng} disabled={!state.form}
-                        onInput={(e) => e.currentTarget.value ? setNewDetail({ ...newDetail, locate: { ...newDetail.locate, lng: e.currentTarget.value } }) : undefined}
-                    />
-                </Form.Item></Col>
+            <Row>
+                <Col ><EnvironmentOutlined /></Col>
+                <Col span={11} className="sub-detail">{newDetail.locate.lat}</Col>
+                <Col span={11} className="sub-detail">{newDetail.locate.lng}</Col>
             </Row>
-            </span>
+            <Map marker={newDetail.locate} onClick={onClick} />
+            <Button hidden ref={inputRef} type="primary" htmlType="submit" >
+                Submit
+            </Button>
         </Space>
     </Form >
 
@@ -161,7 +174,9 @@ const UserDrawer = (state: any) => {
                         <span><TagsOutlined /><Text className="sub-detail">{state.user.tag && state.user.tag.length > 0 ? state.user.tag[ 0 ] : "なし"}</Text></span>
                         <Text className="sub-title">待ち合わせポイント</Text>
                         <span><EnvironmentOutlined /><Text className="sub-detail">{state.user.locate && state.user.locate.lat && state.user.locate.lng ? <Link href={"https://www.google.com/maps/search/?api=1&query=" + state.user.locate.lat + "," + state.user.locate.lng} target="_blank" className="sub-detail"> {state.user.locate.lat}, {state.user.locate.lng} </Link> :
-                            "なし"}</Text></span></> :
+                            "なし"}</Text></span>
+                        <Map marker={state.user.locate} />
+                    </> :
                     <></>}
             </Space>
         </Drawer>

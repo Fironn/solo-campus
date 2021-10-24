@@ -1,9 +1,9 @@
-import type { FormEvent } from "react";
 import type { Pair, User as Users } from "./components/type"
 import type { UserCalender } from "./components/type"
 
 import { useState, useEffect } from 'react'
-import { auth, signInAccount, sendVerification, getUserDetail, signOutAccount, currentUser, signUpAccount, getImg, getPairDetail, getImgPair, getUserState } from "./components/firebase"
+import { auth, db, readMessage, sendVerification, getUserDetail, getImg, getPairDetail, getImgPair, getUserState } from "./components/firebase"
+import { onSnapshot, collection, doc, } from "firebase/firestore";
 import Chat from './chat'
 import Calender from './calender'
 import User from './user'
@@ -13,10 +13,11 @@ import UserDrawer from "./userDrawer";
 import PairDrawer from "./pairDrawer";
 import RegisterDrawer from "./registerDrawer";
 import './App.css';
-import { Layout, Button, Input, Row, Col, Drawer, Skeleton, notification, Divider } from 'antd';
-import { openNotification } from "./notification";
+import { Layout, Button, Input, Typography, Row, Col, Drawer, Skeleton, notification, Divider } from 'antd';
+import { openNotification, closeNotification } from "./notification";
 import deepEqual from "deep-equal";
 const { Header, Footer, Sider, Content } = Layout;
+const { Text, Link } = Typography;
 
 const App = () => {
   const [ user, setUser ] = useState<Users | undefined>(undefined);
@@ -85,6 +86,7 @@ const App = () => {
   }
 
   useEffect(() => {
+    var unsubscribe: Function;
     const getState = async () => {
       setPhotoURL(await getImg());
     }
@@ -95,18 +97,39 @@ const App = () => {
     }
 
     auth.onAuthStateChanged((user_change: any) => {
-      if (user_change) {
-        getStates(user_change)
-        getState()
-      } else {
-        setUser(undefined);
-        setDetail(undefined);
+      try {
+        if (user_change) {
+          getStates(user_change)
+          getState()
+          const colRef = collection(doc(db, "users", user_change.uid), "messages");
+          unsubscribe = onSnapshot(colRef,
+            (snapshot) => {
+              snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                  const data = change.doc.data();
+                  if (data.read === false && data.title && data.message) openNotification([ data.title, data.message ], () => readMessage(colRef, change.doc.id))
+                }
+              });
+            }, (e) => {
+              console.error(e)
+            });
+
+          return () => unsubscribe();
+        } else {
+          setUser(undefined);
+          setDetail(undefined);
+        }
+        setLoading(false)
+        setForm(true)
+      } catch (e) {
+        console.error(e)
       }
-      setForm(true)
-      setLoading(false)
     });
 
     return () => {
+      unsubscribe();
+      closeNotification()
+      setForm(true)
     };
   }, []);
 
@@ -117,6 +140,7 @@ const App = () => {
   const openDetail = async (value: UserCalender | undefined) => {
     if (value !== undefined) {
       setLoading(true)
+      setPhotoURLPair("")
       if (value.room) {
         const temp = await getPairDetail(value.room)
         if (temp !== undefined) {
@@ -129,6 +153,7 @@ const App = () => {
         } else {
           setDetail(value)
           setPair(undefined)
+          setPhotoURLPair("")
         }
         if (value.state === 2) {
           setUserState(await getUserState(value.room));
@@ -174,7 +199,7 @@ const App = () => {
                   {loading ?
                     <Skeleton active avatar paragraph={{ rows: 4 }} /> :
                     <>
-                      <Detail open={detail !== undefined} form={form} pair={pair} userState={userState} onSubmit={onSubmit} photoURL={photoURLPair} detail={detail} showDrawer={showDrawer} />
+                      <Detail open={detail !== undefined} form={form} pair={pair} userState={userState} onSubmit={onSubmit} photoURLPair={photoURLPair} detail={detail} showDrawer={showDrawer} />
                       {detail && detail.state === 3 ? <Chat user={user} form={form} room={detail ? detail.room : undefined} onSubmit={onSubmit} open={detail !== undefined} />
                         : <></>}
                     </>
@@ -182,7 +207,7 @@ const App = () => {
                 </Col>
               </Row>
               <UserDrawer changeUserProfile={changeUserProfile} photoURL={photoURL} form={form} onClose={onClose} onSubmit={onSubmit} changePhoto={changePhoto} visible={visibleUser} user={user} />
-              <PairDrawer pair={pair} onClose={onClose} visible={visiblePair} />
+              {pair ? <PairDrawer pair={pair} onClose={onClose} visible={visiblePair} photoURLPair={photoURLPair} /> : <></>}
             </>
             : <>
               <Row justify="space-between" gutter={[ 30, 30 ]}>
@@ -198,7 +223,7 @@ const App = () => {
           }
         </Layout>
       </Content>
-      <Footer id="footer">@Copyright しほみスタジオ</Footer>
+      <Footer id="footer">@Copyright <Link href="https://ha-shii.com/" target="_blank">しほみスタジオ</Link></Footer>
     </>
   )
 }

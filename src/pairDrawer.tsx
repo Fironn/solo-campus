@@ -9,14 +9,13 @@ import { async } from "@firebase/util";
 const { Text, Link } = Typography;
 
 const PairDrawer = (state: any) => {
-
     return <>
         <Drawer title="プロフィール" placement="right" onClose={state.onClose} visible={state.visible} width={300}>
             <Space id="pair-drawer" direction="vertical" align="start">
                 <Layout className="icon" >
                     <span style={{ height: '100%', width: '100%' }}>
-                        {state.pair && state.pair.photoURL !== "" ?
-                            <Avatar size={64} src={state.pair.photoURL} alt={state.pair.displayName} /> :
+                        {state.pair && state.photoURLPair && state.photoURLPair !== "" ?
+                            <Avatar size={64} src={state.photoURLPair} alt={state.pair.displayName} /> :
                             <Avatar size={64} icon={<UserOutlined />} alt="" />
                         }
                     </span>
