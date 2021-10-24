@@ -1,6 +1,8 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "ソロきゃん",
+  "name": "ソロキャン [SOLO-Campus]",
+  "description": "\"会える\"新しいソーシャルネットワーキングサービス「ソロキャン(SOLO-Campus)」。その時、その場所かぎりの出会いを探す。",
+  "version": "0.1",
   "icons": [
     {
       "src": "favicon.ico",

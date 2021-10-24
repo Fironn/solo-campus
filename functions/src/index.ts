@@ -13,6 +13,28 @@ const getRandomInt = (max: number) => {
 type latLng = { lat: string, lng: string }
 const locateDefault: latLng = { lat: "", lng: "" }
 
+
+const getDistance = (latLng_1: latLng, latLng_2: latLng) => {
+    const deg2rad = (degree: number) => degree * (Math.PI / 180);
+
+    const lat_1 = parseFloat(latLng_1.lat)
+    const lng_1 = parseFloat(latLng_1.lng)
+    const lat_2 = parseFloat(latLng_2.lat)
+    const lng_2 = parseFloat(latLng_1.lng)
+
+    const radlat = deg2rad(Math.abs(lat_1 - lat_2));
+    const radlng = deg2rad(Math.abs(lng_1 - lng_2));
+    const average = deg2rad(lat_1 + ((lat_2 - lat_1) / 2));
+    var meridian = 0;
+    var prime = 0;
+
+    const temp = 1.0 - 0.00669438 * Math.pow(Math.sin(average), 2);
+    meridian = 6335439.0 / Math.sqrt(Math.pow(temp, 3));
+    prime = 6378137.0 / Math.sqrt(temp);
+
+    return Math.round(Math.sqrt(Math.pow(meridian * radlat, 2) + Math.pow(prime * Math.cos(average) * radlng, 2))) / 1000;
+}
+
 const addRoom = async (date: string, time: string, uid_1: string, uid_2: string, locate: latLng) => {
     const res = await db.collection('rooms').add({
         members: [ { uid: uid_1, state: 0 }, { uid: uid_2, state: 0 } ],
@@ -83,6 +105,7 @@ const sendMessage = async (uid: string, messages: string[]) => {
     console.log('send the message: ', res.id);
 }
 
+
 exports.updateCalender = functions.firestore
     .document('calender/{date}/{time}/{uid}')
     .onWrite(async (change, context) => {
@@ -140,10 +163,15 @@ exports.updateCalender = functions.firestore
                 const pairData = pairDocs.data()
                 const userData = userDocs.data()
                 if (userData && userData.locate && pairData && pairData.locate) {
-                    if (getRandomInt(2) === 1) {
-                        locate = userData.locate
+                    const dis = getDistance(userData.locate, pairData.locate)
+                    if (dis <= 2) {
+                        if (getRandomInt(2) === 1) {
+                            locate = userData.locate
+                        } else {
+                            locate = pairData.locate
+                        }
                     } else {
-                        locate = pairData.locate
+                        return null
                     }
                 }
             }
