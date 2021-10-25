@@ -1,0 +1,73 @@
+#intro .intro-title h1{
+    padding: 0px 20px;
+    margin-top: 0;
+    line-height: 1.3em;
+}
+
+#intro .intro-title .intro-name{
+    background-color: #001628;
+    padding: 5px 10px;
+    color: white;
+}
+
+#intro .intro-title h3{
+    padding: 0px 20px;
+}
+
+#intro .intro-bg h3{
+    background-color: #d6dfe7;
+    padding: 5px 20px;
+}
+
+#intro .intro-title{
+    margin-top: 10px;
+}
+
+#intro .intro-bg{
+    margin:0 30px;
+    padding: 0 0 20px;
+    font-size: larger;
+    background-color: white;
+}
+#intro .intro-bg>div{
+    margin:0px 30px;
+    font-weight: 500;
+}
+
+#intro .intro-dot>div::before{
+    content: "■";
+    margin-right: 1em;
+}
+
+#intro .intro-tri>div::before{
+    content: "▷";
+    margin-right: 1em;
+}
+
+
+#intro .intro-num>div::before{
+}
+
+#intro .intro-sm{
+    padding: 40px 0 0;
+    margin:0px 30px 15px!important;
+}
+
+
+#intro .intro-sm>div{
+    margin:10px 30px;
+}
+
+#intro .center{
+    text-align: center;
+    width: 100%;
+    margin:40px auto !important;
+}
+
+#intro .center span{
+    font-weight: 600;
+    font-size: large;
+}
+
+#intro .intro-sm ::before{
+}

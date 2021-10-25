@@ -61,8 +61,8 @@ const Detail = (state: any) => {
 
                     </Row>
                     <Row justify="center" align="middle">
-                        <EnvironmentOutlined />
-                        {state.detail.locate && state.detail.locate.lat && state.detail.locate.lng ? <Link href={"https://www.google.com/maps/search/?api=1&query=" + state.detail.locate.lat + "," + state.detail.locate.lng} target="_blank"> {state.detail.locate.lat}, {state.detail.locate.lng} </Link> :
+                        <Text className="sub-title"><EnvironmentOutlined />場所</Text>
+                        {state.detail.locate && state.detail.locate.lat && state.detail.locate.lng ? <Link className="sub-detail" href={"https://www.google.com/maps/search/?api=1&query=" + state.detail.locate.lat + "," + state.detail.locate.lng} target="_blank"> {state.detail.locate.lat}, {state.detail.locate.lng} </Link> :
                             <Text className="sub-detail">未確定</Text>}
                     </Row>
                     {state.pair && state.pair !== undefined ?

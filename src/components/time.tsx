@@ -1,4 +1,4 @@
-import { format, addDays, differenceInDays } from 'date-fns'
+import { format, getDay, addDays, differenceInDays, isPast } from 'date-fns'
 
 export const today = new Date();
 export const this_year = today.getFullYear();
@@ -6,6 +6,10 @@ export const this_month = today.getMonth() + 1;
 export const this_date = today.getDate();
 export const this_day = today.getDay();
 
+
+export const strToPast = (_date: string) => {
+    return isPast(new Date(_date))
+}
 
 export const zeroPadding = (num: number, len: number) => {
     return (Array(num).join('0') + num).slice(-len);
@@ -25,6 +29,18 @@ export const getTimes = (_date: Date, verbose: number) => {
         times.push(format(new Date(year, month, date, i, 30), formats));
     }
     return times
+}
+
+const days = [ '日', '月', '火', '水', '木', '金', '土' ]
+
+export const getDays = (_date: Date) => {
+    const day = getDay(_date)
+    var days_send = []
+    for (var i = 0; i < 7; i++) {
+        if (i + day > days.length - 1) days_send.push(days[ i + day - 7 ]);
+        else days_send.push(days[ i + day ]);
+    }
+    return days_send
 }
 
 export const getDates = (date_start: Date, verbose: number) => {

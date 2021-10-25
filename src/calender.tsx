@@ -5,11 +5,10 @@ import { useState, useEffect, useMemo } from 'react'
 import { Layout, Button, Input, Checkbox, Row, Col, Spin, Slider, List, Card, Typography, Divider, Space } from 'antd';
 import './calender.css';
 import { getCalenderRange, setCalenderRange } from "./components/firebase"
-import { format } from 'date-fns'
-import { getTimes, getDates, today, dateToDateString } from './components/time'
+import { getTimes, getDates, today, dateToDateString, strToPast, getDays } from './components/time'
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
 import { CheckboxValueType } from "antd/lib/checkbox/Group";
-const { Text, Link } = Typography;
+const { Text, Link, Title } = Typography;
 
 const Calender = (state: any) => {
     const [ edit, setEdit ] = useState(false);
@@ -67,6 +66,7 @@ const Calender = (state: any) => {
 
     const dates = getDates(today ? today : process.env.REACT_APP_CALENDER_DATE_FROM ? new Date(process.env.REACT_APP_CALENDER_DATE_FROM.toString()) : new Date("2021/10/1"), 0)
     const datesStr = getDates(today ? today : process.env.REACT_APP_CALENDER_DATE_FROM ? new Date(process.env.REACT_APP_CALENDER_DATE_FROM.toString()) : new Date("2021/10/1"), 2)
+    const days = getDays(today ? today : process.env.REACT_APP_CALENDER_DATE_FROM ? new Date(process.env.REACT_APP_CALENDER_DATE_FROM.toString()) : new Date("2021/10/1"))
 
     const getCheckedList = () => {
         var temp: string[] = []
@@ -105,25 +105,33 @@ const Calender = (state: any) => {
 
     return <Layout id="calender">
         <Spin tip="Loading..." spinning={loading} >
-            <Space align="end" direction="vertical">
-                {edit ?
-                    <span>
-                        <Space>
-                            <Button type="primary" disabled={!(state.form || edit)} onClick={onSubmit} >
-                                保存
+            <Space direction="vertical">
+                <Row>
+                    <Col flex="auto">
+                        <Title level={3} className="c-title">空き時間を予約する</Title>
+                    </Col>
+                    <Col>
+                        {edit ?
+                            <span>
+                                <Space>
+                                    <Button type="primary" disabled={!(state.form || edit)} onClick={onSubmit} >
+                                        保存
+                                    </Button>
+                                    <Button disabled={!(state.form || edit)} onClick={() => onEdit(false)} >
+                                        キャンセル
+                                    </Button>
+                                </Space>
+                            </span> :
+                            <Button className="c-button" type="primary" disabled={!state.form} onClick={() => onEdit(true)} >
+                                編集
                             </Button>
-                            <Button disabled={!(state.form || edit)} onClick={() => onEdit(false)} >
-                                キャンセル
-                            </Button>
-                        </Space>
-                    </span> :
-                    <Button type="primary" disabled={!state.form} onClick={() => onEdit(true)} >
-                        編集
-                    </Button>
-                }
+                        }
+                    </Col>
+                </Row>
                 <Checkbox.Group style={{ width: 'auto' }} onChange={onChange} value={checkedList} >
                     <Row gutter={[ 0, 0 ]} className="c-l" >
                         <Col span={3} key={0}>
+                            <Row gutter={[ 0, 0 ]} className="c-s c-o" key={0}></Row>
                             <Row gutter={[ 0, 0 ]} className="c-s c-o" key={0}></Row>
                             {
                                 getTimes(today, 1).map((value, index) =>
@@ -133,11 +141,15 @@ const Calender = (state: any) => {
                         </Col>
                         {
                             dates.map((values, indexs) => <Col span={3} key={indexs + 1}>
-                                <Row gutter={[ 0, 0 ]} className="c-s c-o" key={0}><Text style={{ margin: 'auto' }}>{dateToDateString(values, 2)}</Text></Row>
+                                <Row gutter={[ 0, 0 ]} className={`c-s c-o c-o-${indexs === 0 ? 't' : indexs % 2 == 1 ? 'e' : 'o'}`}><Text style={{ margin: 'auto' }}>{dateToDateString(values, 2)}</Text></Row>
+                                <Row gutter={[ 0, 0 ]} className={`c-s c-o c-o-${indexs === 0 ? 't' : indexs % 2 == 1 ? 'e' : 'o'}`}><Text style={{ margin: 'auto' }}>{days[ indexs ]}</Text></Row>
                                 {
                                     getTimes(new Date(values), 0).map((value, index) => {
                                         if (calender !== undefined) {
                                             const dateCalender = calender.filter((item) => { if (item.date === dateToDateString(value, 0) && item.time === dateToDateString(value, 1)) return true; });
+                                            if (indexs == 0 && strToPast(value)) {
+                                                return <Row gutter={[ 0, 0 ]} className="c-s c-s-end" key={index + 1} ><Checkbox value={value} disabled={true}><Text style={{ margin: 'auto' }}>{value}</Text></Checkbox></Row>
+                                            }
                                             if (dateCalender.length > 0 && dateCalender[ 0 ].state === 4) {
                                                 return <Row gutter={[ 0, 0 ]} className="c-s c-s-end" key={index + 1} ><div className="c-s-click" style={{ 'display': edit ? 'none' : 'block' }} onClick={() => state.openDetail(dateTimeToData(value))} /><Checkbox value={value} disabled={true}><Text style={{ margin: 'auto' }}>{value}</Text></Checkbox></Row>
                                             } else if (dateCalender.length > 0 && dateCalender[ 0 ].state === 3) {
@@ -145,10 +157,10 @@ const Calender = (state: any) => {
                                             } else if (dateCalender.length > 0 && dateCalender[ 0 ].state === 2) {
                                                 return <Row gutter={[ 0, 0 ]} className="c-s c-s-wait" key={index + 1} ><div className="c-s-click" style={{ 'display': edit ? 'none' : 'block' }} onClick={() => state.openDetail(dateTimeToData(value))} /><Checkbox value={value} disabled={true}><Text style={{ margin: 'auto' }}>{value}</Text></Checkbox></Row>
                                             } else if (dateCalender.length > 0 && dateCalender[ 0 ].state === 1) {
-                                                return <Row gutter={[ 0, 0 ]} className="c-s" key={index + 1} ><div className="c-s-click" style={{ 'display': edit ? 'none' : 'block' }} onClick={() => state.openDetail(dateTimeToData(value))} /><Checkbox value={value} ><Text style={{ margin: 'auto' }}>{value}</Text></Checkbox></Row>
+                                                return <Row gutter={[ 0, 0 ]} className={`c-s c-s-${indexs === 0 ? 't' : indexs % 2 == 1 ? 'e' : 'o'}`} key={index + 1} ><div className="c-s-click" style={{ 'display': edit ? 'none' : 'block' }} onClick={() => state.openDetail(dateTimeToData(value))} /><Checkbox value={value} ><Text style={{ margin: 'auto' }}>{value}</Text></Checkbox></Row>
                                             }
                                         }
-                                        return <Row gutter={[ 0, 0 ]} className="c-s" key={index + 1} ><div className="c-s-click" style={{ 'display': edit ? 'none' : 'block', 'cursor': 'auto' }} onClick={() => state.openDetail(dateTimeToData(undefined))} /><Checkbox value={value} ><Text style={{ margin: 'auto' }}>{value}</Text></Checkbox></Row>
+                                        return <Row gutter={[ 0, 0 ]} className={`c-s c-s-${indexs === 0 ? 't' : indexs % 2 == 1 ? 'e' : 'o'}`} key={index + 1} ><div className="c-s-click" style={{ 'display': edit ? 'none' : 'block', 'cursor': 'auto' }} onClick={() => state.openDetail(dateTimeToData(undefined))} /><Checkbox value={value} ><Text style={{ margin: 'auto' }}>{value}</Text></Checkbox></Row>
                                     })
                                 }
                             </Col>
@@ -158,7 +170,7 @@ const Calender = (state: any) => {
                 </Checkbox.Group>
             </Space>
         </Spin>
-    </Layout>
+    </Layout >
 }
 
 export default Calender

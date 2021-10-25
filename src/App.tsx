@@ -12,12 +12,13 @@ import Detail from './detail'
 import UserDrawer from "./userDrawer";
 import PairDrawer from "./pairDrawer";
 import RegisterDrawer from "./registerDrawer";
+import Intro from "./intro"
 import './App.css';
 import { Layout, Button, Input, Typography, Row, Col, Drawer, Skeleton, notification, Divider } from 'antd';
 import { openNotification, closeNotification } from "./notification";
 import deepEqual from "deep-equal";
 const { Header, Footer, Sider, Content } = Layout;
-const { Text, Link } = Typography;
+const { Text, Link, Title } = Typography;
 
 const App = () => {
   const [ user, setUser ] = useState<Users | undefined>(undefined);
@@ -33,6 +34,7 @@ const App = () => {
   const [ pair, setPair ] = useState<Pair | undefined>(undefined);
   const [ photoURLPair, setPhotoURLPair ] = useState<string | undefined>("");
 
+  const [ device, setDevice ] = useState<string>("")
 
   useEffect(() => {
     const getState = async () => {
@@ -87,6 +89,19 @@ const App = () => {
 
   useEffect(() => {
     var unsubscribe: Function;
+    const ua = window.navigator.userAgent.toLowerCase();
+    if (ua.indexOf('iphone') > 0 || ua.indexOf('ipod') > 0 || ua.indexOf('android') > 0 && ua.indexOf('mobile') > 0) {
+      setDevice('sp')
+    } else if (ua.indexOf('ipad') > 0 || ua.indexOf('android') > 0) {
+      // iOS12 まで
+      setDevice('tab');
+    } else if (ua.indexOf('ipad') > -1 || ua.indexOf('macintosh') > -1 && 'ontouchend' in document) {
+      // iOS13 以降
+      setDevice('tab');
+    } else {
+      setDevice('pc');
+    }
+
     const getState = async () => {
       setPhotoURL(await getImg());
     }
@@ -180,49 +195,64 @@ const App = () => {
 
   return (
     <>
-      <Header id="header">
-        <Layout id="user-bar">
-          {user ?
-            <User user={user} photoURL={photoURL} onSubmit={onSubmit} showDrawer={showDrawer} form={form} openDetail={openDetail} />
-            : <SignIn onSubmit={onSubmit} form={form} showDrawer={showDrawer} />}
-        </Layout>
-      </Header>
-      <Content id="main">
-        <Layout id="content">
-          {user ? user.emailVerified ?
-            <>
-              <Row id="group" justify="space-between" gutter={[ 30, 30 ]}>
-                <Col flex="500px">
-                  <Calender user={user} onSubmit={onSubmit} openDetail={openDetail} form={form} />
-                </Col>
-                <Col flex="auto">
-                  {loading ?
-                    <Skeleton active avatar paragraph={{ rows: 4 }} /> :
-                    <>
-                      <Detail open={detail !== undefined} form={form} pair={pair} userState={userState} onSubmit={onSubmit} photoURLPair={photoURLPair} detail={detail} showDrawer={showDrawer} />
-                      {detail && detail.state === 3 ? <Chat user={user} form={form} room={detail ? detail.room : undefined} onSubmit={onSubmit} open={detail !== undefined} />
-                        : <></>}
-                    </>
-                  }
-                </Col>
-              </Row>
-              <UserDrawer changeUserProfile={changeUserProfile} photoURL={photoURL} form={form} onClose={onClose} onSubmit={onSubmit} changePhoto={changePhoto} visible={visibleUser} user={user} />
-              {pair ? <PairDrawer pair={pair} onClose={onClose} visible={visiblePair} photoURLPair={photoURLPair} /> : <></>}
-            </>
-            : <>
-              <Row justify="space-between" gutter={[ 30, 30 ]}>
-                <Col flex="500px">
-                  まだメール承認が完了していません。再送信しますか？
-                  <Button type="link" onClick={async () => { onSubmit(false); await sendVerification(); onSubmit(true); }} disabled={!form}>はい</Button>
-                </Col>
-              </Row>
-            </>
-            : <>
-              <RegisterDrawer onClose={onClose} form={form} onSubmit={onSubmit} visible={visibleRegister} />
-            </>
-          }
-        </Layout>
-      </Content>
+      {device === 'pc' ?
+        <>
+          <Header id="header">
+            <Layout id="user-bar">
+              {user ?
+                <User user={user} photoURL={photoURL} onSubmit={onSubmit} showDrawer={showDrawer} form={form} openDetail={openDetail} />
+                : <SignIn onSubmit={onSubmit} form={form} showDrawer={showDrawer} />}
+            </Layout>
+          </Header>
+          <Content id="main">
+            <Layout id="content">
+              {user ? user.emailVerified ?
+                <>
+                  <Row id="group" justify="space-between" gutter={[ 30, 30 ]}>
+                    <Col flex="500px" id="left">
+                      <Calender user={user} onSubmit={onSubmit} openDetail={openDetail} form={form} />
+                    </Col>
+                    <Col flex="auto" id="right">
+                      {loading ?
+                        <Skeleton active avatar paragraph={{ rows: 4 }} /> :
+                        <>
+                          <Detail open={detail !== undefined} form={form} pair={pair} userState={userState} onSubmit={onSubmit} photoURLPair={photoURLPair} detail={detail} showDrawer={showDrawer} />
+                          {detail && detail.state === 3 ? <Chat user={user} form={form} room={detail ? detail.room : undefined} onSubmit={onSubmit} open={detail !== undefined} />
+                            : <></>}
+                        </>
+                      }
+                    </Col>
+                  </Row>
+                  <UserDrawer changeUserProfile={changeUserProfile} photoURL={photoURL} form={form} onClose={onClose} onSubmit={onSubmit} changePhoto={changePhoto} visible={visibleUser} user={user} />
+                  {pair ? <PairDrawer pair={pair} onClose={onClose} visible={visiblePair} photoURLPair={photoURLPair} /> : <></>}
+                </>
+                : <>
+                  <Row justify="space-between" gutter={[ 30, 30 ]}>
+                    <Col flex="500px">
+                      まだメール承認が完了していません。再送信しますか？
+                      <Button type="link" onClick={async () => { onSubmit(false); await sendVerification(); onSubmit(true); }} disabled={!form}>はい</Button>
+                    </Col>
+                  </Row>
+                </>
+                : <>
+                  <Intro />
+                  <RegisterDrawer onClose={onClose} form={form} onSubmit={onSubmit} visible={visibleRegister} />
+                </>
+              }
+            </Layout>
+          </Content></>
+        :
+        <>
+          <Header id="header">
+          </Header>
+          <Content id="main">
+            <Layout id="content">
+              <Text>サービスのご利用はPCのみ対応しています。</Text>
+              <Intro />
+            </Layout>
+          </Content>
+        </>
+      }
       <Footer id="footer">@Copyright <Link href="https://ha-shii.com/" target="_blank">しほみスタジオ</Link></Footer>
     </>
   )

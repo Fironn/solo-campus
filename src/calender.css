@@ -2,6 +2,7 @@
     height: 100%;
     overflow: scroll;
 }
+
 .c-l{
   border: 0.5px solid white;
 }
@@ -17,9 +18,31 @@
 }
 
 .c-o{
-  background-color: rgb(241, 211, 165);
+  background-color: rgb(247, 221, 184);
   border: 0.1px solid white;
   padding: 5px;
+}
+
+.c-s-e {
+}
+
+.c-s-o {
+    background-color: rgb(240, 219, 187);
+}
+
+.c-s-t {
+    background-color: rgb(243, 206, 146);
+}
+
+.c-o-e {
+}
+
+.c-o-o {
+    background-color: rgb(238, 208, 163);
+}
+
+.c-o-t {
+    background-color: rgb(231, 171, 80);
 }
 
 .c-s {

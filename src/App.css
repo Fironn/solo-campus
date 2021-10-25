@@ -52,6 +52,11 @@
   height: 100%;
 }
 
+#right{
+  border-left: #282c3425 solid 0.01px;
+  /* background-color: rgb(187, 187, 187); */
+}
+
 #header{
   /* height: 10vh; */
 }
