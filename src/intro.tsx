@@ -12,7 +12,7 @@ const Intro = () => {
         <Space direction="vertical" size={35} id="intro">
             <div className="intro-title">
                 <Title level={3}>その時、その場所かぎりの出会いを探す。</Title>
-                <Title><span className="intro-name">ソロキャン[ SOLO - Campus ]</span> は<br />"会える" 新しいソーシャルネットワーキングサービスです。</Title>
+                <Title><span className="intro-name">ソロキャン[ SOLO - Campus ]</span> は<br /><span className="line">時間ベース</span> の <span className="line">会える</span> 新しいソーシャルネットワーキングサービスです。</Title>
             </div>
             <div className="intro-bg">
                 <Title level={3}>利用方法</Title>
@@ -43,7 +43,7 @@ const Intro = () => {
             <div className="center" ><Text >というのは建前で・・</Text></div>
             <div className="intro-bg">
                 <div className="intro-sm">
-                    <Title level={4}>実は "大学生" ってこんな人が多いんです。</Title>
+                    <Title level={4}>実は <span className="line">大学生</span> ってこんな人が多いんです。</Title>
                     <Space direction="vertical" className="intro-tri">
                         <Text>授業がない日は一日中家にいる</Text>
                         <Text>ベットの上でだらだらしててご飯も食べるのも面倒になってくる</Text>

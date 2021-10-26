@@ -61,6 +61,7 @@ const RegisterDrawer = (state: any) => {
             <Space id="register-drawer" direction="vertical" align="start">
                 <Form labelCol={{ span: 4 }} onFinish={onSend} wrapperCol={{ span: 24 }} validateMessages={validateMessages} layout="vertical" className="form">
                     <Space direction="vertical" align="start" style={{ width: "100%" }}>
+                        <Text className="sub-detail" style={{ color: 'red' }}>プロトタイプのテストに参加する方：ありがとうございます。表示名を[テスト中]にすることで直接会うことを拒否します。</Text>
                         <Text className="sub-title">名前</Text>
                         <Form.Item name="displayName" className="sub-detail" rules={[ { required: true } ]}>
                             <Input placeholder="表示名" value={newDetail.displayName} disabled={!state.form}

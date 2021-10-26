@@ -4,6 +4,10 @@
     line-height: 1.3em;
 }
 
+#intro .line{
+    background:linear-gradient(transparent 50%, #ffff66 0%);
+}
+
 #intro .intro-title .intro-name{
     background-color: #001628;
     padding: 5px 10px;
@@ -70,4 +74,9 @@
 }
 
 #intro .intro-sm ::before{
+}
+
+#intro .intro-bg>div a{
+    width: 100%;
+    word-break: break-all;
 }

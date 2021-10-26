@@ -422,7 +422,7 @@ export const sendMessage = async (room: string, message: string) => {
 export const getCalender = async (date: Date) => {
     try {
         const user = currentUser();
-        const dateTimeStr = getDateTimeString(date);
+        const dateTimeStr = getDateTimeString(date, 0);
         const dateStr = dateTimeStr.date
         const timeStr = dateTimeStr.time
 

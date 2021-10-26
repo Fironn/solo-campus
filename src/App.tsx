@@ -1,7 +1,7 @@
-import type { Pair, User as Users } from "./components/type"
+import type { Pair, User as Users, dateTime } from "./components/type"
 import type { UserCalender } from "./components/type"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { auth, db, readMessage, sendVerification, getUserDetail, getImg, getPairDetail, getImgPair, getUserState } from "./components/firebase"
 import { onSnapshot, collection, doc, } from "firebase/firestore";
 import Chat from './chat'
@@ -14,6 +14,7 @@ import PairDrawer from "./pairDrawer";
 import RegisterDrawer from "./registerDrawer";
 import Intro from "./intro"
 import './App.css';
+import './sp.css';
 import { Layout, Button, Input, Typography, Row, Col, Drawer, Skeleton, notification, Divider } from 'antd';
 import { openNotification, closeNotification } from "./notification";
 import deepEqual from "deep-equal";
@@ -30,11 +31,12 @@ const App = () => {
   const [ detail, setDetail ] = useState<UserCalender | undefined>(undefined);
   const [ userState, setUserState ] = useState<number | undefined>(undefined);
   const [ photoURL, setPhotoURL ] = useState<string | undefined>("");
-
+  const [ noticeBudge, setNoticeBudge ] = useState<dateTime[]>([]);
   const [ pair, setPair ] = useState<Pair | undefined>(undefined);
   const [ photoURLPair, setPhotoURLPair ] = useState<string | undefined>("");
 
   const [ device, setDevice ] = useState<string>("")
+  const scrollRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const getState = async () => {
@@ -58,6 +60,13 @@ const App = () => {
     return () => {
     };
   }, [ detail ]);
+
+  useEffect(() => {
+    console.log("noticeBudge", noticeBudge)
+    return () => {
+    };
+  }, [ noticeBudge ]);
+
 
   const showDrawer = (page: 1 | 2 | 3) => {
     if (page === 1) {
@@ -84,6 +93,22 @@ const App = () => {
   const changeUserProfile = (data: Users) => {
     if (data && Object.keys(data).length !== 0) {
       setUser({ ...user, ...data })
+    }
+  }
+
+  const showNotice = (dateTime: dateTime[]) => {
+    if (dateTime.length > 0) {
+      setNoticeBudge(dateTime)
+    }
+  }
+
+  const closeNotice = (date: string, time: string) => {
+    const check = noticeBudge.filter((value) => {
+      return value.date.toString() !== date.toString() || value.time.toString() !== time.toString()
+    });
+
+    if (check.length !== noticeBudge.length) {
+      setNoticeBudge(check)
     }
   }
 
@@ -117,14 +142,21 @@ const App = () => {
           getStates(user_change)
           getState()
           const colRef = collection(doc(db, "users", user_change.uid), "messages");
+          var send: dateTime[] = []
           unsubscribe = onSnapshot(colRef,
             (snapshot) => {
               snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                   const data = change.doc.data();
-                  if (data.read === false && data.title && data.message) openNotification([ data.title, data.message ], () => readMessage(colRef, change.doc.id))
+                  if (data.read === false && data.title && data.message && data.date && data.time) {
+                    openNotification([ data.title, data.message, data.date, data.time ], () => readMessage(colRef, change.doc.id))
+                    send.push({ date: data.date, time: data.time })
+                  } else if (data.read === false && data.title && data.message) {
+                    openNotification([ data.title, data.message ], () => readMessage(colRef, change.doc.id))
+                  }
                 }
               });
+              showNotice(send)
             }, (e) => {
               console.error(e)
             });
@@ -152,10 +184,24 @@ const App = () => {
     setForm(state)
   };
 
+  const scrollToDetail = useCallback(() => {
+    scrollRef!.current!.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ scrollRef ])
+
+
   const openDetail = async (value: UserCalender | undefined) => {
+    console.log(value)
     if (value !== undefined) {
+      if (device === 'sp') {
+        scrollToDetail();
+      }
       setLoading(true)
       setPhotoURLPair("")
+      closeNotice(value.date, value.time)
       if (value.room) {
         const temp = await getPairDetail(value.room)
         if (temp !== undefined) {
@@ -194,67 +240,54 @@ const App = () => {
   }
 
   return (
-    <>
-      {device === 'pc' ?
-        <>
-          <Header id="header">
-            <Layout id="user-bar">
-              {user ?
-                <User user={user} photoURL={photoURL} onSubmit={onSubmit} showDrawer={showDrawer} form={form} openDetail={openDetail} />
-                : <SignIn onSubmit={onSubmit} form={form} showDrawer={showDrawer} />}
-            </Layout>
-          </Header>
-          <Content id="main">
-            <Layout id="content">
-              {user ? user.emailVerified ?
-                <>
-                  <Row id="group" justify="space-between" gutter={[ 30, 30 ]}>
-                    <Col flex="500px" id="left">
-                      <Calender user={user} onSubmit={onSubmit} openDetail={openDetail} form={form} />
-                    </Col>
-                    <Col flex="auto" id="right">
-                      {loading ?
-                        <Skeleton active avatar paragraph={{ rows: 4 }} /> :
-                        <>
-                          <Detail open={detail !== undefined} form={form} pair={pair} userState={userState} onSubmit={onSubmit} photoURLPair={photoURLPair} detail={detail} showDrawer={showDrawer} />
-                          {detail && detail.state === 3 ? <Chat user={user} form={form} room={detail ? detail.room : undefined} onSubmit={onSubmit} open={detail !== undefined} />
-                            : <></>}
-                        </>
-                      }
-                    </Col>
-                  </Row>
-                  <UserDrawer changeUserProfile={changeUserProfile} photoURL={photoURL} form={form} onClose={onClose} onSubmit={onSubmit} changePhoto={changePhoto} visible={visibleUser} user={user} />
-                  {pair ? <PairDrawer pair={pair} onClose={onClose} visible={visiblePair} photoURLPair={photoURLPair} /> : <></>}
-                </>
-                : <>
-                  <Row justify="space-between" gutter={[ 30, 30 ]}>
-                    <Col flex="500px">
-                      まだメール承認が完了していません。再送信しますか？
-                      <Button type="link" onClick={async () => { onSubmit(false); await sendVerification(); onSubmit(true); }} disabled={!form}>はい</Button>
-                    </Col>
-                  </Row>
-                </>
-                : <>
-                  <Intro />
-                  <RegisterDrawer onClose={onClose} form={form} onSubmit={onSubmit} visible={visibleRegister} />
-                </>
-              }
-            </Layout>
-          </Content></>
-        :
-        <>
-          <Header id="header">
-          </Header>
-          <Content id="main">
-            <Layout id="content">
-              <Text>サービスのご利用はPCのみ対応しています。</Text>
+    <span id={device === 'sp' ? 'sp' : 'pc'}>
+      <Header id="header">
+        <Layout id="user-bar">
+          {user ?
+            <User user={user} photoURL={photoURL} onSubmit={onSubmit} showDrawer={showDrawer} form={form} openDetail={openDetail} />
+            : <SignIn onSubmit={onSubmit} form={form} showDrawer={showDrawer} />}
+        </Layout>
+      </Header>
+      <Content id="main">
+        <Layout id="content">
+          {user ? user.emailVerified ?
+            <>
+              <Row id="group" justify="space-between" gutter={[ 30, 30 ]}>
+                <Col flex="500px" id="left">
+                  <Calender user={user} onSubmit={onSubmit} openDetail={openDetail} form={form} noticeBudge={noticeBudge} />
+                </Col>
+                <Col flex="auto" id="right">
+                  {loading ?
+                    <Skeleton active avatar paragraph={{ rows: 4 }} /> :
+                    <>
+                      <div ref={scrollRef} />
+                      <Detail open={detail !== undefined} form={form} pair={pair} userState={userState} onSubmit={onSubmit} photoURLPair={photoURLPair} detail={detail} showDrawer={showDrawer} />
+                      {detail && detail.state === 3 ? <Chat user={user} form={form} room={detail ? detail.room : undefined} onSubmit={onSubmit} open={detail !== undefined} />
+                        : <></>}
+                    </>
+                  }
+                </Col>
+              </Row>
+              <UserDrawer changeUserProfile={changeUserProfile} photoURL={photoURL} form={form} onClose={onClose} onSubmit={onSubmit} changePhoto={changePhoto} visible={visibleUser} user={user} />
+              {pair ? <PairDrawer pair={pair} onClose={onClose} visible={visiblePair} photoURLPair={photoURLPair} /> : <></>}
+            </>
+            : <>
+              <Row justify="space-between" gutter={[ 30, 30 ]}>
+                <Col flex="500px">
+                  まだメール承認が完了していません。再送信しますか？
+                  <Button type="link" onClick={async () => { onSubmit(false); await sendVerification(); onSubmit(true); }} disabled={!form}>はい</Button>
+                </Col>
+              </Row>
+            </>
+            : <>
               <Intro />
-            </Layout>
-          </Content>
-        </>
-      }
+              <RegisterDrawer onClose={onClose} form={form} onSubmit={onSubmit} visible={visibleRegister} />
+            </>
+          }
+        </Layout>
+      </Content>
       <Footer id="footer">@Copyright <Link href="https://ha-shii.com/" target="_blank">しほみスタジオ</Link></Footer>
-    </>
+    </span >
   )
 }
 

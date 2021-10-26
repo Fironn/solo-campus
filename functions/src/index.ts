@@ -94,17 +94,18 @@ const changeRoomStateId = async (without_2: boolean, room: string, state: number
     functions.logger.log('room state updated!', date, time, room);
 }
 
-const sendMessage = async (uid: string, messages: string[]) => {
+const sendMessage = async (uid: string, date: string, time: string, messages: string[]) => {
     const res = await db.collection('users').doc(uid).collection("messages").add({
         title: messages[ 0 ],
-        message: messages.slice(1).join("　"),
+        message: messages.length > 1 ? messages.slice(1).join("　") : "",
+        date: date,
+        time: time,
         read: false,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log('send the message: ', res.id);
+    functions.logger.log('send the message: ', res.id);
 }
-
 
 exports.updateCalender = functions.firestore
     .document('calender/{date}/{time}/{uid}')
@@ -150,9 +151,11 @@ exports.updateCalender = functions.firestore
 
             const pairRef = db.collection('users').doc(pairUid);
             const pairDocs = await pairRef.get();
+            var pairName = ""
 
             const userRef = db.collection('users').doc(context.params.uid);
             const userDocs = await userRef.get();
+            var userName = ""
 
             var locate: latLng = locateDefault;
 
@@ -162,6 +165,9 @@ exports.updateCalender = functions.firestore
             } else {
                 const pairData = pairDocs.data()
                 const userData = userDocs.data()
+                if (userData && userData.displayName) userName = userData.displayName
+                if (pairData && pairData.displayName) pairName = pairData.displayName
+
                 if (userData && userData.locate && pairData && pairData.locate) {
                     const dis = getDistance(userData.locate, pairData.locate)
                     if (dis <= 2) {
@@ -179,11 +185,8 @@ exports.updateCalender = functions.firestore
             const roomId = await addRoom(context.params.date, context.params.time, context.params.uid, pairUid, locate)
             await changeRoomStateId(true, roomId, 2, context.params.date, context.params.time, pairUid, context.params.uid)
 
-            const send = [ "相手が見つかりました", "予定日時",
-                context.params.date.substring(0, 4) + "/" + context.params.date.substring(4, 6) + "/" + context.params.date.substring(6, 8)
-                , context.params.time.substring(0, 2) + ":" + context.params.time.substring(2, 4) ]
-            sendMessage(context.params.uid, send)
-            sendMessage(pairUid, send)
+            sendMessage(context.params.uid, context.params.date, context.params.time, [ "相手が見つかりました", pairName + "さん" ])
+            sendMessage(pairUid, context.params.date, context.params.time, [ "相手が見つかりました", userName + "さん" ])
 
             return change.after.ref.set({
                 room: roomId,
@@ -213,12 +216,9 @@ exports.updateState = functions.firestore
             if (data.members[ 0 ].state === 1 && data.members[ 1 ].state === 1) {
                 await changeRoomState(false, 3, data.date, data.time, data.members[ 0 ].uid, data.members[ 1 ].uid)
                 functions.logger.log('matched:', context.params.id);
-                const send = [ "確定しました！", "予定日時",
-                    data.date.substring(0, 4) + "/" + data.date.substring(4, 6) + "/" + data.date.substring(6, 8)
-                    , data.time.substring(0, 2) + ":" + data.time.substring(2, 4) ]
 
-                sendMessage(data.members[ 0 ].uid, send)
-                sendMessage(data.members[ 1 ].uid, send)
+                sendMessage(data.members[ 0 ].uid, data.date, data.time, [ "確定しました！" ])
+                sendMessage(data.members[ 1 ].uid, data.date, data.time, [ "確定しました！" ])
 
                 return change.after.ref.set({
                     state: 3,
@@ -229,12 +229,13 @@ exports.updateState = functions.firestore
                 await changeRoomStateId(false, "", 1, data.date, data.time, data.members[ 0 ].uid, data.members[ 1 ].uid)
                 functions.logger.log('deleted:', context.params.id);
 
-                sendMessage(data.members[ 0 ].uid, [ data.members[ 0 ].state === -1 ? "拒否しました" : "拒否されました", "予定日時",
-                data.date.substring(0, 4) + "/" + data.date.substring(4, 6) + "/" + data.date.substring(6, 8),
-                data.time.substring(0, 2) + ":" + data.time.substring(2, 4) ])
-                sendMessage(data.members[ 1 ].uid, [ data.members[ 1 ].state === -1 ? "拒否しました" : "拒否されました", "予定日時",
-                data.date.substring(0, 4) + "/" + data.date.substring(4, 6) + "/" + data.date.substring(6, 8),
-                data.time.substring(0, 2) + ":" + data.time.substring(2, 4) ])
+                if (data.members[ 0 ].state === -1) {
+                    sendMessage(data.members[ 1 ].uid, data.date, data.time, [ "拒否されました" ])
+                }
+
+                if (data.members[ 1 ].state === -1) {
+                    sendMessage(data.members[ 0 ].uid, data.date, data.time, [ "拒否されました" ])
+                }
 
                 return change.after.ref.delete();
             }
@@ -244,4 +245,40 @@ exports.updateState = functions.firestore
             functions.logger.log(e)
             return null;
         }
+    });
+
+
+exports.updateMessage = functions.firestore
+    .document('rooms/{id}/messages/{messageId}')
+    .onCreate(async (snap, context) => {
+        try {
+            const newValue = snap.data();
+            functions.logger.log(newValue);
+
+            const uid = newValue.uid;
+            const message = newValue.message;
+            if (uid && message) {
+                const roomRef = db.collection('rooms').doc(context.params.id);
+                const roomDocs = await roomRef.get();
+                functions.logger.log(message);
+
+                if (!roomDocs.exists) {
+                    functions.logger.log('No room found');
+                } else {
+                    const roomData = roomDocs.data()
+                    functions.logger.log(roomData);
+                    if (roomData && roomData.members && roomData.members.length === 2) {
+                        var pairUid = ""
+                        roomData.members.forEach((value: any, index: number) => {
+                            if (value.uid !== uid) pairUid = value.uid
+                        });
+
+                        sendMessage(pairUid, roomData.date, roomData.time, [ "メッセージが届きました", message ])
+                    }
+                }
+            }
+        } catch (e) {
+            functions.logger.log(e)
+        }
+        return null;
     });

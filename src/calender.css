@@ -1,6 +1,5 @@
 #calender{
     height: 100%;
-    overflow: scroll;
 }
 
 .c-l{
@@ -82,12 +81,25 @@
 }
 
 .c-s .c-s-click{
-    z-index: 2;
+    z-index: 3;
     width: 100%;
     height: 100%;
     position: absolute;
     top:0;
     cursor: pointer;
+}
+
+.c-s .ant-badge{
+    z-index: 2;
+    text-align: right;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    cursor: pointer;
+    top:0;
+}
+.c-s .ant-badge sup{
+    z-index: 3;
 }
 
 .c-s .c-s-wait{

@@ -55,9 +55,17 @@ export const getDates = (date_start: Date, verbose: number) => {
     return dates
 }
 
-export const getDateTimeString = (date: Date) => {
-    const convertedDate = format(date, 'yyyyddMM')
-    const convertedTime = format(date, 'HHmm')
+export const getDateTimeString = (date: Date, verbose: number) => {
+    var formatDate = "yyyyMMdd"
+    var formatTime = "HHmm"
+
+    if (verbose === 1) {
+        formatDate = "yyyy/MM/dd"
+        formatTime = "HH:mm"
+    }
+
+    const convertedDate = format(date, formatDate)
+    const convertedTime = format(date, formatTime)
 
     return { date: convertedDate, time: convertedTime }
 }

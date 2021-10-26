@@ -1,13 +1,15 @@
 import type { ChangeEvent } from "react";
 import type { latLng, User, AccountDetail } from "./components/type";
 import { useState, useEffect, useRef, } from 'react'
-import { setUserDetail, getImg, setImg } from "./components/firebase"
+import { setUserDetail, getImg, setImg, signOutAccount } from "./components/firebase"
 import './userDrawer.css';
 import './App.css';
 import Map from './map'
 import {
     Layout, Button, Skeleton, Typography, Input, Row, Col, Avatar, Upload, message, Drawer, Form, Space
 } from 'antd';
+
+import { openNotification, closeNotification } from "./notification";
 import { LoadingOutlined, TagsOutlined, EnvironmentOutlined, UserOutlined, UploadOutlined } from '@ant-design/icons';
 import deepEqual from "deep-equal";
 
@@ -102,19 +104,24 @@ const UserDrawer = (state: any) => {
         setNewDetail({ ...newDetail, locate: { lat: locate.lat.toString(), lng: locate.lng.toString() } });
     }
 
-    const editButton = !onEdit ? <Button type="primary" disabled={!state.form} onClick={() => onEdits(true)}>
-        編集
-    </Button> : <Space>
-        <Button type="primary" disabled={!state.form} onClick={onSubmit}>
-            保存
+    const editButton = !onEdit ? <Space>
+        <Button type="primary" disabled={!state.form} onClick={() => onEdits(true)}>
+            編集
         </Button>
-        <Button disabled={!state.form} onClick={() => onEdits(false)}>
-            キャンセル
-        </Button>
+        <Button onClick={() => { onSubmit(); closeNotification(); signOutAccount() }} disabled={!state.form} >ログアウト</Button>
     </Space>
+        : <Space>
+            <Button type="primary" disabled={!state.form} onClick={onSubmit}>
+                保存
+            </Button>
+            <Button disabled={!state.form} onClick={() => onEdits(false)}>
+                キャンセル
+            </Button>
+        </Space>
 
     const editForm = <Form labelCol={{ span: 4 }} wrapperCol={{ span: 24 }} layout="vertical" className="form">
         <Space direction="vertical" align="start">
+            <Text className="sub-detail" style={{ color: 'red' }}>プロトタイプのテストに参加する方：表示名を[テスト中]にすることで直接会うことを拒否します。</Text>
             <Text className="sub-title">名前</Text>
             <Form.Item className="sub-detail">
                 <Input placeholder={state.user.displayName} value={newDetail.displayName} disabled={!state.form}
@@ -177,7 +184,8 @@ const UserDrawer = (state: any) => {
                             "なし"}</Text></span>
                         <Map marker={state.user.locate} />
                     </> :
-                    <></>}
+                    <>
+                    </>}
             </Space>
         </Drawer>
     </>

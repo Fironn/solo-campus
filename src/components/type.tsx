@@ -38,6 +38,7 @@ export type latLng = { lat: string, lng: string }
 
 export type RoomMember = { uid: string, state: number }
 
+export type dateTime = { date: string, time: string }
 export function compare(a: Messages, b: Messages) {
     if (a.timestamp.nanoseconds > b.timestamp.nanoseconds) {
         return 1;

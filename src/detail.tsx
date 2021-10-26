@@ -2,7 +2,7 @@ import type { UserCalender } from "./components/type"
 import { useState, useEffect } from 'react'
 import './App.css';
 import './detail.css';
-import { Layout, Button, Input, Row, Col, Avatar, Typography, Space } from 'antd';
+import { Layout, Button, Input, Row, Col, Avatar, Typography, Space, Empty } from 'antd';
 import { EnvironmentOutlined, UserOutlined } from '@ant-design/icons';
 import { setUserState } from "./components/firebase"
 
@@ -24,8 +24,8 @@ const Detail = (state: any) => {
         {
             state.open ?
                 <>
-                    <Row className="user-status">
-                        <Space size="large">
+                    <Row className="user-status" >
+                        <Space size="large" >
                             {state.userState === 0 && userStateNow === undefined ?
                                 <>
                                     <Text>承認しますか？</Text>
@@ -75,8 +75,11 @@ const Detail = (state: any) => {
                                     }
                                 </Button>
                             </Row>
-                            <Row justify="center">
+                            <Row justify="center" style={{ fontWeight: 'bold' }}>
                                 <Text>{state.pair.displayName}</Text>
+                            </Row>
+                            <Row justify="center">
+                                <Text style={{ color: 'red' }}>表示名を[テスト中]にしている方とは直接会えません</Text>
                             </Row>
                             <Row justify="center" className="status"><Text>返答：</Text>
                                 {state.pair.state === -1 ? <Text className="status-no" /> : state.pair.state === 0 ? <Text className="status-wait" /> : <Text className="status-yes" />}
@@ -85,7 +88,7 @@ const Detail = (state: any) => {
                         <></>
                     }
                 </> :
-                <></>
+                <Empty />
         }
     </Layout >
 }

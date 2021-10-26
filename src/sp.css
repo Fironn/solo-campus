@@ -1,0 +1,114 @@
+#sp #content{
+    padding: 24px 0;
+}
+#sp #user{
+    flex-wrap: wrap;
+}
+
+#sp #signin{
+    flex-wrap: wrap;
+    margin: 24px 0;
+}
+
+#sp #footer {
+    text-align: center;
+}
+
+#sp #header{
+    padding:0 15px;
+    height: auto !important;
+}
+
+#sp #signin >div{
+    margin:0 auto !important;
+    line-height: 3em;
+    width: 100%;
+}
+
+
+#sp #signin button{
+    width: 100%;
+}
+
+#sp #intro .intro-bg>div {
+    margin: 10px 20px !important;
+}
+
+#sp #intro .intro-sm>div{
+    margin: 15px 0;
+}
+
+#sp #intro .intro-sm>div{
+    gap:20px !important;
+}
+  
+#sp #intro .intro-title h1{
+    padding:0 15px;
+}
+
+#sp #intro .intro-bg{
+    margin:0 15px;
+}
+
+#sp #intro .center {
+    padding:0 15px;
+}
+
+#sp #intro .center span{
+    word-break: keep-all;
+    line-height: 2em;
+}
+
+#sp #user #name{
+    display: none;
+}
+
+#sp #user{
+    justify-content: flex-end;
+    margin: 5px 0;
+}
+
+#sp #content #left{
+    width: 100%;
+}
+
+#sp #content #right{
+    width: 100%;
+    min-height: 100vh;
+}
+
+#sp #content #group{
+    margin: 0 !important;
+    justify-content: space-around;
+}
+#sp #content #calender .c-s .ant-typography {
+    font-size: smaller;
+}
+
+#sp #content #calender .c-s {
+    padding: 0;
+}
+
+#sp #detail #room .ant-col{
+    width: 100%;
+    max-width: none;
+    line-height: 2em;
+    flex: none;
+}
+
+#sp #detail #room .ant-col span{
+display: inline-block;
+}
+#sp #detail #room .sub-title{
+text-align: right;
+width: 40%;
+}
+
+#sp #detail #room .sub-detail{
+text-align: left;
+width: 40%;
+}
+
+#sp #user{
+    line-height: 0;
+}
