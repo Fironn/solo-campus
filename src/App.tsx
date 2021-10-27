@@ -1,8 +1,8 @@
 import type { Pair, User as Users, dateTime } from "./components/type"
 import type { UserCalender } from "./components/type"
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { auth, db, readMessage, sendVerification, getUserDetail, getImg, getPairDetail, getImgPair, getUserState } from "./components/firebase"
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { auth, db, readMessage, sendVerification, getUserDetail, getImg, getPairDetail, getImgPair, getUserState, readMessageDate } from "./components/firebase"
 import { onSnapshot, collection, doc, } from "firebase/firestore";
 import Chat from './chat'
 import Calender from './calender'
@@ -15,8 +15,9 @@ import RegisterDrawer from "./registerDrawer";
 import Intro from "./intro"
 import './App.css';
 import './sp.css';
+import Map from './map'
 import { Layout, Button, Input, Typography, Row, Col, Drawer, Skeleton, notification, Divider } from 'antd';
-import { openNotification, closeNotification } from "./notification";
+import { openNotification, closeNotification, readNotification } from "./notification";
 import deepEqual from "deep-equal";
 const { Header, Footer, Sider, Content } = Layout;
 const { Text, Link, Title } = Typography;
@@ -37,6 +38,10 @@ const App = () => {
 
   const [ device, setDevice ] = useState<string>("")
   const scrollRef = useRef<HTMLInputElement>(null);
+
+  const noticeBudgeTo = useMemo(() => {
+    return noticeBudge
+  }, [ noticeBudge ])
 
   useEffect(() => {
     const getState = async () => {
@@ -60,12 +65,6 @@ const App = () => {
     return () => {
     };
   }, [ detail ]);
-
-  useEffect(() => {
-    console.log("noticeBudge", noticeBudge)
-    return () => {
-    };
-  }, [ noticeBudge ]);
 
 
   const showDrawer = (page: 1 | 2 | 3) => {
@@ -93,22 +92,6 @@ const App = () => {
   const changeUserProfile = (data: Users) => {
     if (data && Object.keys(data).length !== 0) {
       setUser({ ...user, ...data })
-    }
-  }
-
-  const showNotice = (dateTime: dateTime[]) => {
-    if (dateTime.length > 0) {
-      setNoticeBudge(dateTime)
-    }
-  }
-
-  const closeNotice = (date: string, time: string) => {
-    const check = noticeBudge.filter((value) => {
-      return value.date.toString() !== date.toString() || value.time.toString() !== time.toString()
-    });
-
-    if (check.length !== noticeBudge.length) {
-      setNoticeBudge(check)
     }
   }
 
@@ -142,21 +125,30 @@ const App = () => {
           getStates(user_change)
           getState()
           const colRef = collection(doc(db, "users", user_change.uid), "messages");
-          var send: dateTime[] = []
+          let noticeBudgeTemp: dateTime[] = []
           unsubscribe = onSnapshot(colRef,
             (snapshot) => {
               snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                   const data = change.doc.data();
                   if (data.read === false && data.title && data.message && data.date && data.time) {
-                    openNotification([ data.title, data.message, data.date, data.time ], () => readMessage(colRef, change.doc.id))
-                    send.push({ date: data.date, time: data.time })
+                    openNotification([ data.title, data.message, data.date, data.time ], change.doc.id, () => { readMessage(colRef, change.doc.id); })
+                    noticeBudgeTemp.push({ date: data.date, time: data.time })
+                    setNoticeBudge(noticeBudgeTemp)
                   } else if (data.read === false && data.title && data.message) {
-                    openNotification([ data.title, data.message ], () => readMessage(colRef, change.doc.id))
+                    openNotification([ data.title, data.message ], change.doc.id, () => readMessage(colRef, change.doc.id))
+                  }
+                } else if (change.type === "removed" || change.type === "modified") {
+                  const data = change.doc.data();
+                  if (data.read === true && data.title && data.message && data.date && data.time) {
+                    noticeBudgeTemp = noticeBudgeTemp.filter((value) => {
+                      return !(value.date.toString() === data.date.toString() && value.time.toString() === data.time.toString())
+                    });
+                    readNotification(data.date, data.time)
                   }
                 }
+                setNoticeBudge(noticeBudgeTemp)
               });
-              showNotice(send)
             }, (e) => {
               console.error(e)
             });
@@ -176,6 +168,7 @@ const App = () => {
     return () => {
       unsubscribe();
       closeNotification()
+      onClose()
       setForm(true)
     };
   }, []);
@@ -194,14 +187,24 @@ const App = () => {
 
 
   const openDetail = async (value: UserCalender | undefined) => {
-    console.log(value)
     if (value !== undefined) {
       if (device === 'sp') {
         scrollToDetail();
       }
       setLoading(true)
       setPhotoURLPair("")
-      closeNotice(value.date, value.time)
+
+      if (value.date && value.time) {
+        const temp = noticeBudge.filter((item) => {
+          return !(value.date.toString() === item.date.toString() && value.time.toString() === item.time.toString())
+        });
+        if (temp.length !== noticeBudge.length) {
+          setNoticeBudge(temp);
+          readMessageDate(value.date, value.time)
+        }
+      }
+
+
       if (value.room) {
         const temp = await getPairDetail(value.room)
         if (temp !== undefined) {
@@ -254,7 +257,7 @@ const App = () => {
             <>
               <Row id="group" justify="space-between" gutter={[ 30, 30 ]}>
                 <Col flex="500px" id="left">
-                  <Calender user={user} onSubmit={onSubmit} openDetail={openDetail} form={form} noticeBudge={noticeBudge} />
+                  <Calender user={user} onSubmit={onSubmit} openDetail={openDetail} form={form} noticeBudge={noticeBudgeTo} />
                 </Col>
                 <Col flex="auto" id="right">
                   {loading ?

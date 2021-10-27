@@ -24,6 +24,7 @@
 }
 
 #user-drawer .icon button{
+    z-index: 2;
     width: 100%;
     padding: 0;
     margin: 0;

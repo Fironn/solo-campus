@@ -94,13 +94,14 @@ const changeRoomStateId = async (without_2: boolean, room: string, state: number
     functions.logger.log('room state updated!', date, time, room);
 }
 
-const sendMessage = async (uid: string, date: string, time: string, messages: string[]) => {
+const sendMessage = async (uid: string, date: string, time: string, messages: string[], id: string) => {
     const res = await db.collection('users').doc(uid).collection("messages").add({
         title: messages[ 0 ],
         message: messages.length > 1 ? messages.slice(1).join("　") : "",
         date: date,
         time: time,
         read: false,
+        id: id,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -185,8 +186,8 @@ exports.updateCalender = functions.firestore
             const roomId = await addRoom(context.params.date, context.params.time, context.params.uid, pairUid, locate)
             await changeRoomStateId(true, roomId, 2, context.params.date, context.params.time, pairUid, context.params.uid)
 
-            sendMessage(context.params.uid, context.params.date, context.params.time, [ "相手が見つかりました", pairName + "さん" ])
-            sendMessage(pairUid, context.params.date, context.params.time, [ "相手が見つかりました", userName + "さん" ])
+            sendMessage(context.params.uid, context.params.date, context.params.time, [ "相手が見つかりました", pairName + "さん" ], roomId)
+            sendMessage(pairUid, context.params.date, context.params.time, [ "相手が見つかりました", userName + "さん" ], roomId)
 
             return change.after.ref.set({
                 room: roomId,
@@ -217,8 +218,8 @@ exports.updateState = functions.firestore
                 await changeRoomState(false, 3, data.date, data.time, data.members[ 0 ].uid, data.members[ 1 ].uid)
                 functions.logger.log('matched:', context.params.id);
 
-                sendMessage(data.members[ 0 ].uid, data.date, data.time, [ "確定しました！" ])
-                sendMessage(data.members[ 1 ].uid, data.date, data.time, [ "確定しました！" ])
+                sendMessage(data.members[ 0 ].uid, data.date, data.time, [ "確定しました！" ], context.params.id)
+                sendMessage(data.members[ 1 ].uid, data.date, data.time, [ "確定しました！" ], context.params.id)
 
                 return change.after.ref.set({
                     state: 3,
@@ -230,11 +231,11 @@ exports.updateState = functions.firestore
                 functions.logger.log('deleted:', context.params.id);
 
                 if (data.members[ 0 ].state === -1) {
-                    sendMessage(data.members[ 1 ].uid, data.date, data.time, [ "拒否されました" ])
+                    sendMessage(data.members[ 1 ].uid, data.date, data.time, [ "拒否されました" ], context.params.id)
                 }
 
                 if (data.members[ 1 ].state === -1) {
-                    sendMessage(data.members[ 0 ].uid, data.date, data.time, [ "拒否されました" ])
+                    sendMessage(data.members[ 0 ].uid, data.date, data.time, [ "拒否されました" ], context.params.id)
                 }
 
                 return change.after.ref.delete();
@@ -273,7 +274,7 @@ exports.updateMessage = functions.firestore
                             if (value.uid !== uid) pairUid = value.uid
                         });
 
-                        sendMessage(pairUid, roomData.date, roomData.time, [ "メッセージが届きました", message ])
+                        sendMessage(pairUid, roomData.date, roomData.time, [ "メッセージが届きました", message ], context.params.messageId)
                     }
                 }
             }

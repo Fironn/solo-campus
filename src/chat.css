@@ -28,6 +28,7 @@
     border-radius: 5px;
     padding: 1px 10px;
     background-color: rgb(210, 210, 210);
+    max-width: 300px;
     margin: 0 auto 0 0;
 }
 

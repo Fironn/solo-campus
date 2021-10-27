@@ -12,7 +12,7 @@ const Intro = () => {
         <Space direction="vertical" size={35} id="intro">
             <div className="intro-title">
                 <Title level={3}>その時、その場所かぎりの出会いを探す。</Title>
-                <Title><span className="intro-name">ソロキャン[ SOLO - Campus ]</span> は<br /><span className="line">時間ベース</span> の <span className="line">会える</span> 新しいソーシャルネットワーキングサービスです。</Title>
+                <Title><span className="intro-name">ソロキャン[ SOLO - Campus ] (β版)</span> は<br /><span className="line">時間ベース</span> の <span className="line">会える</span> 新しいソーシャルネットワーキングサービスです。</Title>
             </div>
             <div className="intro-bg">
                 <Title level={3}>利用方法</Title>
@@ -26,10 +26,11 @@ const Intro = () => {
             <div className="intro-bg">
                 <Title level={3}>仕組み</Title>
                 <Space direction="vertical" className="intro-dot">
-                    <Text>同じ時間が空いているかつ指定場所がお互い2km以内のユーザー同士がマッチングできます。   </Text>
+                    <Text>同じ時間が空いているかつ指定場所がお互い2km以内のユーザー同士がマッチングできます。</Text>
                     <Text>男女関係なく完全ランダム制</Text>
-                    <Text>どちらかの指定した位置が待ち合わせ場所にランダムで選ばれます。 </Text>
-                    <Text>現在は一回３０分に制限しています。 </Text>
+                    <Text>どちらかの指定した位置が待ち合わせ場所にランダムで選ばれます。</Text>
+                    <Text>現在は一回３０分に制限しています。</Text>
+                    <Text>過去のチャット欄みは観覧できなくなります。</Text>
                 </Space>
             </div>
             <div className="intro-bg">

@@ -1,10 +1,11 @@
 import type { Messages, UserCalender, Pair, RoomMember, User, AccountDetail, latLng } from "./type"
+import type { DocumentReference } from "firebase/firestore"
 import { getApps, initializeApp } from "firebase/app"
 import {
     getAuth, sendEmailVerification, signOut, browserSessionPersistence,
-    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword, isSignInWithEmailLink, signInWithEmailLink
 } from "firebase/auth";
-import { Timestamp, writeBatch, setDoc, getFirestore, arrayUnion, arrayRemove, updateDoc, collection, query, orderBy, startAt, endAt, limit, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
+import { Timestamp, writeBatch, setDoc, getFirestore, arrayUnion, arrayRemove, updateDoc, collection, query, orderBy, startAt, endAt, limit, addDoc, getDocs, getDoc, doc, where } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL, uploadBytesResumable } from "firebase/storage"
 import { getDateTimeString } from "./time"
 import { openNotification } from "../notification";
@@ -33,14 +34,35 @@ const storage = getStorage();
 auth.setPersistence(browserSessionPersistence);
 
 
-export const readMessage = async (ref: any, id: string) => {
+export const readMessage = async (refs: any, id: string) => {
     try {
-        await updateDoc(doc(ref, id), {
+        await updateDoc(doc(refs, id), {
             read: true
         });
         console.log("read message", id)
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
+        console.error(e.code, e.message)
+    }
+}
+
+export const readMessageDate = async (date: string, time: string) => {
+    try {
+        const user = currentUser();
+        if (user) {
+            const colRef = collection(doc(db, "users", user.uid), "messages");
+            const q = query(colRef, where("date", "==", date), where("time", "==", time));
+
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach(async (docs) => {
+                await updateDoc(docs.ref, {
+                    read: true
+                });
+            });
+            console.log("read message Data", date, time)
+        }
+    } catch (e: any) {
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
     }
 }
@@ -57,7 +79,7 @@ export const getImg = async () => {
             return ""
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return ""
     }
@@ -79,7 +101,7 @@ export const setUserState = async (room: string, state: boolean) => {
         } else {
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
     }
 }
@@ -104,7 +126,7 @@ export const getUserState = async (room: string) => {
             return undefined
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return undefined
     }
@@ -130,7 +152,7 @@ const getPairLocate = async (room: string) => {
             return undefined
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return undefined
     }
@@ -160,7 +182,7 @@ export const setUserDetail = async (data: User) => {
             return false
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return false
     }
@@ -211,7 +233,7 @@ export const getUserDetail = async (user: any) => {
             }
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return undefined
     }
@@ -246,7 +268,7 @@ export const getPairDetail = async (room: string | undefined) => {
         }
         return undefined
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return undefined
     }
@@ -264,7 +286,7 @@ export const getImgPair = async (pair: Pair) => {
             return ""
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return ""
     }
@@ -304,7 +326,7 @@ export const setImg = async (file: Blob, next: any, error: any, complete: any) =
         } else {
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
     }
 }
@@ -314,13 +336,13 @@ export const sendVerification = async () => {
         const user = currentUser();
         if (user) {
             const sendEmail = await sendEmailVerification(user);
-            openNotification([ "承認メールを送信しました。", "" ], () => { })
+            openNotification([ "承認メールを送信しました。", "" ], undefined, () => { })
             return true
         } else {
             return false
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return false
     }
@@ -331,7 +353,7 @@ export const signUpAccount = async (data: AccountDetail, email: string, password
         const result = await createUserWithEmailAndPassword(auth, email, password);
         const user = result.user;
         const sendEmail = await sendEmailVerification(user);
-        openNotification([ "登録完了", "承認メールを送信しました。" ], () => { })
+        openNotification([ "登録完了", "承認メールを送信しました。" ], undefined, () => { })
 
         const docRef = doc(collection(db, "users"), user.uid);
         const update = await setDoc(docRef, {
@@ -339,8 +361,9 @@ export const signUpAccount = async (data: AccountDetail, email: string, password
             photoURL: "",
             timestamp: timestamp()
         });
+        window.location.reload();
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return false
     }
@@ -353,7 +376,7 @@ export const signInAccount = async (email: string, password: string) => {
         const user = result.user;
         return user
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return undefined
     }
@@ -363,7 +386,7 @@ export const signOutAccount = async () => {
     try {
         const result = await signOut(auth);
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return undefined
     }
@@ -387,7 +410,7 @@ export const getMessage = async (room: string) => {
             var res: Messages[] = []
             querySnapshot.forEach((d) => {
                 const data = d.data()
-                res.push({ message: data.message, uid: data.uid, timestamp: data.timestamp })
+                res.push({ id: d.id, message: data.message, uid: data.uid, timestamp: data.timestamp })
             });
 
             return res;
@@ -395,7 +418,7 @@ export const getMessage = async (room: string) => {
             return []
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return []
     }
@@ -408,13 +431,14 @@ export const sendMessage = async (room: string, message: string) => {
             const colRef = collection(doc(collection(db, "rooms"), room), "messages");
             const result = await addDoc(colRef, {
                 message: message,
+                read: false,
                 uid: user.uid,
                 timestamp: timestamp()
             });
             console.log("send!", message);
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
     }
 }
@@ -441,7 +465,7 @@ export const getCalender = async (date: Date) => {
             return {}
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return {}
     }
@@ -466,7 +490,7 @@ export const getCalenderRange = async (dates: string[]) => {
             return []
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
         return []
     }
@@ -489,7 +513,7 @@ export const setCalenderRange = async (data: UserCalender[]) => {
         } else {
         }
     } catch (e: any) {
-        openNotification([ e.code, e.message ], () => { })
+        openNotification([ e.code, e.message ], undefined, () => { })
         console.error(e.code, e.message)
     }
 }

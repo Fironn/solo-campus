@@ -5,6 +5,7 @@ import CalenderDetail from './calenderDetail'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Layout, Button, Input, Checkbox, Row, Col, Spin, Slider, List, Card, Typography, Divider, Space, Badge } from 'antd';
 import './calender.css';
+import Memo from './memo'
 import { getCalenderRange, setCalenderRange } from "./components/firebase"
 import { getTimes, getDates, today, dateToDateString, getDateTimeString, strToPast, getDays } from './components/time'
 import { CheckboxChangeEvent } from "antd/lib/checkbox";
@@ -84,6 +85,7 @@ const Calender = (state: any) => {
         };
     }, [ calender ]);
 
+
     useEffect(() => {
         async function getState() {
             setCalender(await getCalenderRange(datesStr))
@@ -111,8 +113,11 @@ const Calender = (state: any) => {
         <Spin tip="Loading..." spinning={loading} >
             <Space direction="vertical" style={{ width: '100%' }}>
                 <Row style={{ width: '100%' }}>
-                    <Col flex="auto">
+                    <Col>
                         <Title level={3} className="c-title">空き時間を予約する</Title>
+                    </Col>
+                    <Col flex="auto" style={{ textAlign: 'left', height: '100%' }}>
+                        <Memo />
                     </Col>
                     <Col>
                         {edit ?

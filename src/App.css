@@ -49,6 +49,7 @@
 #right{
   border-left: #282c3425 solid 0.01px;
   /* background-color: rgb(187, 187, 187); */
+  /* max-width: 452px; */
 }
 
 #header{
@@ -85,7 +86,8 @@ button{
 }
 
 #user-bar .ant-space{
-  margin:0 0 0 auto
+  margin:auto 0 auto auto;
+  line-height: 0;
 }
 
 #user-bar .ant-typography{
@@ -103,4 +105,14 @@ button{
 #user .ant-skeleton {
   display: flex;
   align-items: center;
+}
+
+
+.memo-button{
+  padding: 0;
+  height: 20px;
+  border-radius: 10px;
+  width: 20px;
+  border: 0.5px #1990ff solid;
+  margin: auto 10px;
 }

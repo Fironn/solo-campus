@@ -63,7 +63,7 @@ const RegisterDrawer = (state: any) => {
                     <Space direction="vertical" align="start" style={{ width: "100%" }}>
                         <Text className="sub-detail" style={{ color: 'red' }}>プロトタイプのテストに参加する方：ありがとうございます。表示名を[テスト中]にすることで直接会うことを拒否します。</Text>
                         <Text className="sub-title">名前</Text>
-                        <Form.Item name="displayName" className="sub-detail" rules={[ { required: true } ]}>
+                        <Form.Item name="displayName" className="sub-detail" rules={[ { required: true }, { min: 2, message: 'DisplayName must be minimum 3 characters.' } ]}>
                             <Input placeholder="表示名" value={newDetail.displayName} disabled={!state.form}
                                 onInput={(e) => setNewDetail({ ...newDetail, displayName: e.currentTarget.value })} />
                         </Form.Item>
@@ -79,7 +79,7 @@ const RegisterDrawer = (state: any) => {
                             />
                         </Form.Item>
                         <Text className="sub-title">パスワード</Text>
-                        <Form.Item className="sub-detail" name="password" rules={[ { required: true } ]}>
+                        <Form.Item className="sub-detail" name="password" rules={[ { required: true }, { min: 6, message: 'Password must be minimum 6 characters.' } ]}>
                             <Input.Password
                                 placeholder="パスワード"
                                 type="password"

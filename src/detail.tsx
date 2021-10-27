@@ -5,6 +5,7 @@ import './detail.css';
 import { Layout, Button, Input, Row, Col, Avatar, Typography, Space, Empty } from 'antd';
 import { EnvironmentOutlined, UserOutlined } from '@ant-design/icons';
 import { setUserState } from "./components/firebase"
+import Map from './map'
 
 const { Text, Link } = Typography;
 
@@ -24,19 +25,19 @@ const Detail = (state: any) => {
         {
             state.open ?
                 <>
-                    <Row className="user-status" >
-                        <Space size="large" >
+                    {state.userState !== undefined ?
+                        <Row className="user-status" >
                             {state.userState === 0 && userStateNow === undefined ?
                                 <>
-                                    <Text>承認しますか？</Text>
-                                    <>
+                                    <Space size="large" >
+                                        <Text>承認しますか？</Text>
                                         <Button type="primary" disabled={!state.form} onClick={() => onSubmit(true)}>
                                             承認
                                         </Button>
                                         <Button disabled={!state.form} onClick={() => onSubmit(false)}>
                                             拒否
                                         </Button>
-                                    </>
+                                    </Space>
                                 </>
                                 : state.userState === 1 || userStateNow === true ?
                                     <Text>承認しました</Text>
@@ -44,8 +45,8 @@ const Detail = (state: any) => {
                                         <Text>拒否しました</Text>
                                         : <></>
                             }
-                        </Space>
-                    </Row>
+                        </Row> : <></>
+                    }
                     <Row id="room">
                         <Col span={8}><Text className="sub-title">予定日時</Text><Text className="sub-detail">{state.detail.date.substring(0, 4)}/{state.detail.date.substring(4, 6)}/{state.detail.date.substring(6, 8)}</Text></Col>
                         <Col flex="auto"><Text className="sub-title">予定時間</Text><Text className="sub-detail">{state.detail.time.substring(0, 2)}:{state.detail.time.substring(2, 4)}</Text></Col>
@@ -61,9 +62,11 @@ const Detail = (state: any) => {
 
                     </Row>
                     <Row justify="center" align="middle">
-                        <Text className="sub-title"><EnvironmentOutlined />場所</Text>
-                        {state.detail.locate && state.detail.locate.lat && state.detail.locate.lng ? <Link className="sub-detail" href={"https://www.google.com/maps/search/?api=1&query=" + state.detail.locate.lat + "," + state.detail.locate.lng} target="_blank"> {state.detail.locate.lat}, {state.detail.locate.lng} </Link> :
-                            <Text className="sub-detail">未確定</Text>}
+                        <Text className="sub-title"><EnvironmentOutlined /> 場所</Text>
+                        {state.detail.locate && state.detail.locate.lat && state.detail.locate.lng ?
+                            <><div style={{ width: '100%', height: '150px', margin: '10px 0' }}><Map marker={state.detail.locate} onClick={() => { }} /></div>
+                                <Link href={"https://www.google.com/maps/search/?api=1&query=" + state.detail.locate.lat + "," + state.detail.locate.lng} target="_blank">Google Mapでみる</Link></>
+                            : <Text className="sub-detail">未確定</Text>}
                     </Row>
                     {state.pair && state.pair !== undefined ?
                         <>

@@ -42,7 +42,9 @@ const UserDrawer = (state: any) => {
     };
 
     const fileUpload = () => {
-        if (inputRef && inputRef.current) inputRef.current.click();
+        if (inputRef && inputRef.current) {
+            inputRef.current.click();
+        }
     };
 
     const next = (snapshot: any) => {
@@ -138,9 +140,6 @@ const UserDrawer = (state: any) => {
                 <Col span={11} className="sub-detail">{newDetail.locate.lng}</Col>
             </Row>
             <Map marker={newDetail.locate} onClick={onClick} />
-            <Button hidden ref={inputRef} type="primary" htmlType="submit" >
-                Submit
-            </Button>
         </Space>
     </Form >
 

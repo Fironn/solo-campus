@@ -1,6 +1,8 @@
 import type { Timestamp } from "firebase/firestore";
+import type { DocumentReference } from "firebase/firestore"
 
 export type Messages = {
+    id:string,
     message: string,
     uid: string,
     timestamp: Timestamp

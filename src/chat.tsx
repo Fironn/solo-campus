@@ -2,10 +2,11 @@ import type { FormEvent } from "react";
 import type { Messages } from "./components/type"
 
 import { useState, useEffect, useRef } from 'react'
-import { auth, currentUser, sendMessage, getMessage, db } from "./components/firebase"
+import { auth, currentUser, sendMessage, getMessage, db, readMessage } from "./components/firebase"
 import { compare } from './components/type'
 import { onSnapshot, collection, query, orderBy, where, limit, doc } from "firebase/firestore";
 import { Layout, Button, Form, Input, List, Typography, Divider, Avatar, Row, Col } from 'antd';
+import { openNotification, closeNotification, readNotification } from "./notification";
 import './chat.css'
 const { Text, Link } = Typography;
 
@@ -19,9 +20,6 @@ const Chat = (state: any) => {
         var unsubscribe: Function;
         async function getState() {
             if (state.room !== undefined && state.room !== "") {
-                setMessages(await getMessage(state.room));
-                console.log("got message!", state.room);
-
                 const colRef = collection(doc(collection(db, "rooms"), state.room), "messages");
                 const q = query(colRef, orderBy("timestamp", "desc"), limit(10));
 
@@ -29,7 +27,7 @@ const Chat = (state: any) => {
                     var res: Messages[] = []
                     snapshots.forEach((d: any) => {
                         const data = d.data()
-                        res.push({ message: data.message, uid: data.uid, timestamp: data.timestamp })
+                        res.push({ id: d.id, message: data.message, uid: data.uid, timestamp: data.timestamp })
                     });
                     console.log("updated!", res.length)
                     setMessages(res)
@@ -60,11 +58,13 @@ const Chat = (state: any) => {
     const chatList = () => {
         var temp = []
         for (var i = messages.length - 1; i >= 0; i--) {
-            if (messages[ i ].uid === state.user.uid) temp.push(<List.Item className="chat-list-child chat-list-child-user" key={i}><Text>{messages[ i ].message}</Text></List.Item>)
-            else if (messages[ i ].uid === "admin") temp.push(<List.Item className="chat-list-child chat-list-child-admin" key={i}><Text>{messages[ i ].message}</Text></List.Item>)
-            else temp.push(<List.Item className="chat-list-child" key={i} style={{ justifyContent: 'flex-start' }}>
-                <Text>{messages[ i ].message}</Text>
-            </List.Item>)
+            if (messages[ i ].uid === state.user.uid) temp.push(<List.Item className="chat-list-child chat-list-child-user" key={messages[ i ].id}><Text>{messages[ i ].message}</Text></List.Item>)
+            else if (messages[ i ].uid === "admin") temp.push(<List.Item className="chat-list-child chat-list-child-admin" key={messages[ i ].id}><Text>{messages[ i ].message}</Text></List.Item>)
+            else {
+                temp.push(<List.Item className="chat-list-child" key={messages[ i ].id} style={{ justifyContent: 'flex-start' }}>
+                    <Text>{messages[ i ].message}</Text>
+                </List.Item>)
+            }
         }
         return temp
     }

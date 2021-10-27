@@ -33,7 +33,7 @@ const User = (state: any) => {
             prefix={<UserOutlined className="site-form-item-icon" />}
         />
         <Input.Password
-            placeholder="password"
+            placeholder="password(6 characters minimum)"
             type="password"
             value={password}
             onInput={(e) => setPassword(e.currentTarget.value)}

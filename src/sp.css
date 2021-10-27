@@ -65,7 +65,7 @@
 
 #sp #user{
     justify-content: flex-end;
-    margin: 5px 0;
+    margin: 10px 0;
 }
 
 #sp #content #left{
@@ -110,5 +110,7 @@ width: 40%;
 }
 
 #sp #user{
-    line-height: 0;
+}
+
+#sp .c-s{
 }
