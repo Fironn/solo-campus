@@ -9,6 +9,29 @@ const { Text, Link, Title } = Typography;
 
 const Intro = () => {
     return (<>
+        <div className="intro-notice">
+            <Title level={4}>ご報告</Title>
+            <Title level={3}><span className="intro-name">ソロキャン</span> は この春、</Title>
+            <Title><span className="line">Splannt：スプラント</span> に生まれ変わります！</Title>
+            <Space direction="vertical" className="notice-detail">
+                <Text>約2週間のMVP実施後ソロキャンは法人化し、<Link href="https://branchism.com/">株式会社Branchism</Link>となりました。</Text>
+                <Text>ソロキャンでは実現できなかった「本人確認」「いいね・ブロック」「通知」ができるようになります！</Text>
+                <Text>これからも安心・安全な待ち合わせサービス実現に尽くしていきますので応援よろしくお願い致します！</Text>
+            </Space>
+            <Title level={4}>Twitter始めました！↓↓</Title>
+
+            <div className="notice-btn">
+                <Button href="https://twitter.com/Branchism_corp" type="primary" shape="round" size={'large'}>
+                    @Branchism_corp
+                </Button>
+            </div>
+            <Title level={4}>Splanntの情報をいち早くお届けします！↓↓</Title>
+            <div className="notice-btn">
+                <Button href="https://forms.gle/AUXxvttFgbEKqtAe7" type="primary" shape="round" size={'large'} danger>
+                    事前登録する
+                </Button>
+            </div>
+        </div>
         <Space direction="vertical" size={35} id="intro">
             <div className="intro-title">
                 <Title level={3}>その時、その場所かぎりの出会いを探す。</Title>
@@ -79,9 +102,10 @@ const Intro = () => {
             <div className="intro-bg">
                 <Title level={3}>現在の状況</Title>
                 <Space direction="vertical" className="intro-dot">
-                    <Text>まずは大学内のみで運用しています。</Text>
-                    <Text>もしもの事故や事件に絡まれた時は自己責任でお願いします。</Text>
-                    <Text>連絡先: <Link href="mailto:solo.campus.survice@gmail.com">solo.campus.survice@gmail.com</Link></Text>
+                    <Text>制限は特にしてませんが、まずは大学内のみで運用しています。</Text>
+                    <Text>2022年春リリース予定のSplanntと同様のプライバシーポリシーを適用します。<Link href="https://splannt.com/policy">プライバシーポリシー</Link></Text>
+                    <Text>2022年春リリース予定のSplanntと同様の利用規約を適用します。<Link href="https://splannt.com/terms">利用規約</Link></Text>
+                    <Text>連絡先: <Link href="mailto:info@branchism.com">info@branchism.com</Link></Text>
                 </Space>
             </div>
         </Space>

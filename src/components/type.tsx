@@ -2,7 +2,7 @@ import type { Timestamp } from "firebase/firestore";
 import type { DocumentReference } from "firebase/firestore"
 
 export type Messages = {
-    id:string,
+    id: string,
     message: string,
     uid: string,
     timestamp: Timestamp
@@ -14,6 +14,7 @@ export type UserCalender = {
     room: string,
     locate: { lat: string, lng: string }
 }
+
 export type Pair = {
     uid: string,
     state: number,
@@ -21,6 +22,7 @@ export type Pair = {
     photoURL: string,
     tag: string[]
 }
+
 export type User = {
     uid: string,
     email: string,

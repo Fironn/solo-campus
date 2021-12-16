@@ -10,7 +10,7 @@ export const openNotification = (messages: string[], id: string | undefined, onC
             messages[ 1 ] + " " + date + " " + time,
         onClose: onClose,
         placement: 'topLeft',
-        duration: 0,
+        duration: 0
     });
 };
 

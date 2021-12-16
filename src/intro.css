@@ -4,8 +4,47 @@
     line-height: 1.3em;
 }
 
-#intro .line{
+.line{
     background:linear-gradient(transparent 50%, #ffff66 0%);
+}
+
+
+.intro-notice{
+    border : #fa0c08 double 5px;
+    background-color: #ffeaea;
+    padding: 36px 18px;
+    margin-bottom: 48px;
+}
+
+ .intro-notice .intro-name{
+    background-color: #001628;
+    padding: 5px 10px;
+    color: white;
+}
+
+.intro-notice h3{
+    padding: 0px 20px;
+}
+
+.notice-btn{
+    width: 100%;
+    text-align: center;
+    margin: 24px 0;
+}
+.notice-btn a span{
+    font-size: large;
+    font-weight: 900;
+}
+
+.notice-detail{
+    margin: 24px 0;
+    font-size: large;
+    font-weight: 500;
+}
+
+.notice-detail>div::before{
+    content: "■";
+    margin-right: 1em;
 }
 
 #intro .intro-title .intro-name{
